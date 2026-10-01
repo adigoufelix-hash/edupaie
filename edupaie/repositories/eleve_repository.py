@@ -32,7 +32,8 @@ class EleveRepository:
         return [r["classe"] for r in rows]
 
     def ajouter(self, e: Eleve) -> int:
-        cur = self.conn.execute(
+        with self.conn:  # commit ou rollback automatique
+         cur = self.conn.execute(
             "INSERT INTO eleve (nom, prenom, classe, annee_scolaire, total_du) "
             "VALUES (?, ?, ?, ?, ?)",
             (e.nom, e.prenom, e.classe, e.annee_scolaire, e.total_du))
