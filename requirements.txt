@@ -5,3 +5,4 @@ PySide6_Addons==6.11.2
 PySide6_Essentials==6.11.2
 reportlab==5.0.1
 shiboken6==6.11.2
+fpdf2 >= 2.8
