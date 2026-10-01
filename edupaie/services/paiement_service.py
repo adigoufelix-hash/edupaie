@@ -45,6 +45,16 @@ class PaiementService:
     def historique(self, eleve_id: int) -> list[Paiement]:
         return self.paiements.lister_par_eleve(eleve_id)
 
+    def situations(self, recherche: str = "", classe: str | None = None,
+                   statut: str | None = None) -> list[tuple]:
+        """Liste (élève, situation) filtrable par statut de paiement."""
+        resultat = []
+        for eleve in self.eleves.lister(recherche, classe):
+            sit = self.situation(eleve.id)
+            if statut is None or sit.statut == statut:
+                resultat.append((eleve, sit))
+        return resultat    
+
     def enregistrer_paiement(self, eleve_id, montant, date_paiement, mode) -> Paiement:
         montant = self._valider_montant(montant)
         date_paiement = self._valider_date(date_paiement)

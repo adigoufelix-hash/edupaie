@@ -44,6 +44,13 @@ class TestPaiementService(unittest.TestCase):
                 with self.assertRaises(ErreurMetier):
                     self.service.enregistrer_paiement(self.eid, montant, dt, mode)
 
+    def test_situations_filtre_par_statut(self):
+        self.service.enregistrer_paiement(self.eid, 40000, "2026-09-01", "especes")
+        partiels = self.service.situations(statut="Partiellement payé")
+        self.assertEqual(len(partiels), 1)
+        self.assertEqual(partiels[0][1].solde, 60000)
+        self.assertEqual(self.service.situations(statut="Soldé"), [])
+
 
 if __name__ == "__main__":
     unittest.main()
