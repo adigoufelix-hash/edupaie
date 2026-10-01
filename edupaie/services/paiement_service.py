@@ -72,6 +72,13 @@ class PaiementService:
                      sit.solde - montant)
         paiement_id = self.paiements.ajouter(p)
         return self.paiements.obtenir(paiement_id)  # avec son numéro de reçu
+    
+    def recu(self, paiement_id: int):
+            """Retrouve un reçu déjà émis : retourne (élève, paiement)."""
+            paiement = self.paiements.obtenir(paiement_id)
+            if paiement is None:
+             raise ErreurMetier("Reçu introuvable.")
+            return self.eleves.get(paiement.eleve_id), paiement
 
     @staticmethod
     def _valider_montant(valeur) -> int:
