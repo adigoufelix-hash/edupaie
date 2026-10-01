@@ -6,7 +6,7 @@ class EleveRepository:
     """Accès aux données de la table eleve. Aucune règle métier ici."""
 
     def __init__(self, conn: sqlite3.Connection):
-        self.conn = conn
+     self.conn = conn
 
     @staticmethod
     def _to_eleve(row: sqlite3.Row) -> Eleve:
@@ -39,11 +39,14 @@ class EleveRepository:
         return cur.lastrowid
 
     def modifier(self, e: Eleve) -> None:
-        self.conn.execute(
+         with self.conn:
+             self.conn.execute(
             "UPDATE eleve SET nom=?, prenom=?, classe=?, annee_scolaire=?, total_du=? "
             "WHERE id=?",
             (e.nom, e.prenom, e.classe, e.annee_scolaire, e.total_du, e.id))
 
     def supprimer(self, eleve_id: int) -> None:
         # Lève sqlite3.IntegrityError si l'élève a des paiements (ON DELETE RESTRICT)
-        self.conn.execute("DELETE FROM eleve WHERE id = ?", (eleve_id,))
+        
+        with self.conn:
+            self.conn.execute("DELETE FROM eleve WHERE id = ?", (eleve_id,))
