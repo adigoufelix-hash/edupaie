@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (QAbstractItemView, QComboBox, QHBoxLayout,
 
 from edupaie.services.paiement_service import ErreurMetier
 from edupaie.ui.eleve_dialog import EleveDialog
+from edupaie.ui.paiement_dialog import PaiementDialog
 
 
 def fcfa(valeur: int) -> str:
@@ -13,9 +14,10 @@ def fcfa(valeur: int) -> str:
 
 
 class ElevesPage(QWidget):
-    def __init__(self, service):
+    def __init__(self, service, paiement_service):
         super().__init__()
         self.service = service
+        self.paiement_service = paiement_service
         self.recherche = QLineEdit()
         self.recherche.setPlaceholderText("Rechercher par nom ou prénom...")
         self.filtre = QComboBox()
@@ -33,9 +35,13 @@ class ElevesPage(QWidget):
         haut, bas = QHBoxLayout(), QHBoxLayout()
         haut.addWidget(self.recherche, 1)
         haut.addWidget(self.filtre)
+        
         for b in (ajouter, modifier, supprimer):
             bas.addWidget(b)
-        bas.addStretch()
+        payer = QPushButton("Enregistrer un paiement")
+        bas.addWidget(payer)
+        payer.clicked.connect(self._payer)
+        bas.addStretch()  
         mise_en_page = QVBoxLayout(self)
         mise_en_page.addLayout(haut)
         mise_en_page.addWidget(self.table)
@@ -103,3 +109,13 @@ class ElevesPage(QWidget):
             return
         self._remplir_classes()
         self.recharger()
+
+    def _payer(self):
+        eleve = self._eleve_selectionne()
+        if not eleve:
+            return
+        if self.paiement_service.situation(eleve.id).solde == 0:
+            QMessageBox.information(
+                self, "Déjà soldé", f"{eleve.nom} {eleve.prenom} a déjà tout payé.")
+            return
+        PaiementDialog(self.paiement_service, eleve, self).exec()   
