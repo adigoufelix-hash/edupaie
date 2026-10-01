@@ -1,4 +1,5 @@
-from PySide6.QtGui import QColor, Qt
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QAbstractItemView, QComboBox, QHBoxLayout,
                                QLineEdit, QMessageBox, QPushButton,
                                QTableWidget, QTableWidgetItem, QVBoxLayout,
@@ -7,6 +8,7 @@ from PySide6.QtWidgets import (QAbstractItemView, QComboBox, QHBoxLayout,
 from edupaie.services.paiement_service import ErreurMetier
 from edupaie.ui.eleve_dialog import EleveDialog
 from edupaie.ui.paiement_dialog import PaiementDialog
+from edupaie.ui.fiche_eleve_dialog import FicheEleveDialog
 
 
 def fcfa(valeur: int) -> str:
@@ -45,7 +47,12 @@ class ElevesPage(QWidget):
         payer = QPushButton("Enregistrer un paiement")
         bas.addWidget(payer)
         payer.clicked.connect(self._payer)
-        bas.addStretch()  
+        fiche = QPushButton("Fiche et Historique")
+        bas.addWidget(fiche)
+        fiche.clicked.connect(self._fiche)   
+        self.table.cellDoubleClicked.connect(lambda *_: self._fiche()) 
+        bas.addStretch()
+       
         mise_en_page = QVBoxLayout(self)
         mise_en_page.addLayout(haut)
         mise_en_page.addWidget(self.table)
@@ -130,4 +137,10 @@ class ElevesPage(QWidget):
                 self, "Déjà soldé", f"{eleve.nom} {eleve.prenom} a déjà tout payé.")
             return
         PaiementDialog(self.paiement_service, eleve, self).exec()
-        self.recharger()  
+        self.recharger() 
+    def _fiche(self):
+        eleve = self._eleve_selectionne()
+        if not eleve:
+            return
+        FicheEleveDialog(self.paiement_service, eleve, self).exec()
+        self.recharger()
