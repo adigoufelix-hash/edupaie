@@ -35,12 +35,23 @@ class PaiementService:
         self.paiements = paiement_repo
 
     def situation(self, eleve_id: int) -> Situation:
+        
         eleve = self.eleves.get(eleve_id)
         if eleve is None:
             raise ErreurMetier("Élève introuvable.")
         paye = self.paiements.total_paye(eleve_id)
         return Situation(eleve.total_du, paye, eleve.total_du - paye,
                          calculer_statut(eleve.total_du, paye))
+
+    def tableau_de_bord(self) -> dict:
+        """Chiffres clés pour le tableau de bord."""
+        situations = self.situations()
+        return {
+            "nb_eleves": len(situations),
+            "total_encaisse": sum(s.total_paye for _, s in situations),
+            "total_restant": sum(s.solde for _, s in situations),
+            "nb_non_soldes": sum(1 for _, s in situations if s.solde > 0),
+        }                    
 
     def historique(self, eleve_id: int) -> list[Paiement]:
         return self.paiements.lister_par_eleve(eleve_id)
