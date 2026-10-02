@@ -1,3 +1,4 @@
+from edupaie.ui.dashboard_page import DashboardPage
 from PySide6.QtWidgets import (QHBoxLayout, QListWidget, QMainWindow,
                                QStackedWidget, QWidget)
 
@@ -11,6 +12,7 @@ class MainWindow(QMainWindow):
         self.menu = QListWidget()
         self.menu.setMaximumWidth(180)
         self.pages = QStackedWidget()
+        self._ajouter_page("Tableau de bord", DashboardPage(paiement_service))
         self._ajouter_page("Élèves", ElevesPage(eleve_service, paiement_service))
         self.menu.currentRowChanged.connect(self.pages.setCurrentIndex)
         self.menu.setCurrentRow(0)
