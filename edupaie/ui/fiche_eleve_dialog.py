@@ -1,3 +1,8 @@
+import os
+from pathlib import Path
+
+from edupaie.services.paiement_service import ErreurMetier
+from edupaie.services.recu_pdf import generer_recu_pdf
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QAbstractItemView, QDialog, QHBoxLayout, QLabel,
                                QMessageBox, QPushButton, QTableWidget,
@@ -36,6 +41,8 @@ class FicheEleveDialog(QDialog):
         fermer = QPushButton("Fermer")
         boutons = QHBoxLayout()
         boutons.addWidget(payer)
+        voir = QPushButton("Voir / imprimer le reçu")
+        boutons.addWidget(voir)
         boutons.addStretch()
         boutons.addWidget(fermer)
 
@@ -47,6 +54,8 @@ class FicheEleveDialog(QDialog):
 
         payer.clicked.connect(self._payer)
         fermer.clicked.connect(self.accept)
+        voir.clicked.connect(self._recu)
+        self.table.cellDoubleClicked.connect(lambda *_: self._recu())
         self.recharger()
 
     def recharger(self):
@@ -76,3 +85,17 @@ class FicheEleveDialog(QDialog):
             return
         PaiementDialog(self.service, self.eleve, self).exec()
         self.recharger()
+    def _recu(self):
+        ligne = self.table.currentRow()
+        if ligne < 0:
+            QMessageBox.information(
+                self, "Sélection", "Sélectionne d'abord un paiement dans la liste.")
+            return
+        paiement_id = self.table.item(ligne, 0).data(Qt.UserRole)
+        try:
+            eleve, paiement = self.service.recu(paiement_id)
+            dossier = Path.home() / "EduPaie" / "recus"
+            chemin = generer_recu_pdf(eleve, paiement, dossier)
+            os.startfile(chemin)
+        except (ErreurMetier, OSError) as e:
+            QMessageBox.warning(self, "Reçu indisponible", str(e))
