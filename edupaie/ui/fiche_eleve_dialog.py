@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (QAbstractItemView, QDialog, QHBoxLayout, QLabel,
                                QTableWidgetItem, QVBoxLayout)
 
 from edupaie.ui.paiement_dialog import MODES, PaiementDialog, fcfa
+from edupaie.ui.style import preparer_table
 
 LIBELLES_MODES = {valeur: libelle for libelle, valeur in MODES}
 COULEURS = {"Soldé": "#2e7d32", "Partiellement payé": "#ef6c00",
@@ -28,6 +29,7 @@ class FicheEleveDialog(QDialog):
         self.resize(780, 480)
 
         self.entete = QLabel()
+        self.entete.setObjectName("entete")
         self.entete.setTextFormat(Qt.RichText)
         self.table = QTableWidget(0, 5)
         self.table.setHorizontalHeaderLabels(
@@ -36,7 +38,7 @@ class FicheEleveDialog(QDialog):
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.horizontalHeader().setStretchLastSection(True)
-
+        preparer_table(self.table)
         payer = QPushButton("Enregistrer un paiement")
         fermer = QPushButton("Fermer")
         boutons = QHBoxLayout()

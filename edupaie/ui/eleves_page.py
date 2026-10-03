@@ -9,7 +9,7 @@ from edupaie.services.paiement_service import ErreurMetier
 from edupaie.ui.eleve_dialog import EleveDialog
 from edupaie.ui.paiement_dialog import PaiementDialog
 from edupaie.ui.fiche_eleve_dialog import FicheEleveDialog
-
+from edupaie.ui.style import preparer_table
 
 def fcfa(valeur: int) -> str:
     return f"{valeur:,}".replace(",", " ") + " FCFA"
@@ -28,16 +28,18 @@ class ElevesPage(QWidget):
         for statut in ("Soldé", "Partiellement payé", "Non payé"):
             self.filtre_statut.addItem(statut, statut)
         self.table = QTableWidget(0, 8)
+       
         self.table.setHorizontalHeaderLabels(
             ["Nom", "Prénom", "Classe", "Année", "Total dû", "Payé", "Solde", "Statut"])
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SingleSelection)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.horizontalHeader().setStretchLastSection(True)
-
+        preparer_table(self.table)
         ajouter = QPushButton("Ajouter")
         modifier = QPushButton("Modifier")
         supprimer = QPushButton("Supprimer")
+        supprimer.setObjectName("danger")
         haut, bas = QHBoxLayout(), QHBoxLayout()
         haut.addWidget(self.recherche, 1)
         haut.addWidget(self.filtre)
@@ -51,7 +53,7 @@ class ElevesPage(QWidget):
         bas.addWidget(fiche)
         fiche.clicked.connect(self._fiche)   
         self.table.cellDoubleClicked.connect(lambda *_: self._fiche()) 
-        bas.addStretch()
+           
        
         mise_en_page = QVBoxLayout(self)
         mise_en_page.addLayout(haut)
@@ -127,6 +129,8 @@ class ElevesPage(QWidget):
             return
         self._remplir_classes()
         self.recharger()
+
+  
 
     def _payer(self):
         eleve = self._eleve_selectionne()

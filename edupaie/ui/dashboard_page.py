@@ -4,19 +4,23 @@ from PySide6.QtWidgets import (QAbstractItemView, QComboBox, QFrame,
                                QTableWidgetItem, QVBoxLayout, QWidget)
 
 from edupaie.ui.paiement_dialog import fcfa
+from edupaie.ui.style import preparer_table
 
 COULEURS = {"Soldé": "#2e7d32", "Partiellement payé": "#ef6c00",
             "Non payé": "#c62828"}
 
 
+
 class Carte(QFrame):
     def __init__(self, titre):
         super().__init__()
-        self.setFrameShape(QFrame.StyledPanel)
+        self.setObjectName("carte")
+        libelle = QLabel(titre)
+        libelle.setObjectName("titreCarte")
         self.valeur = QLabel("0")
-        self.valeur.setStyleSheet("font-size: 22px; font-weight: bold;")
+        self.valeur.setObjectName("valeurCarte")
         mise_en_page = QVBoxLayout(self)
-        mise_en_page.addWidget(QLabel(titre))
+        mise_en_page.addWidget(libelle)
         mise_en_page.addWidget(self.valeur)
 
 
@@ -46,6 +50,7 @@ class DashboardPage(QWidget):
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.horizontalHeader().setStretchLastSection(True)
+        preparer_table(self.table)
 
         mise_en_page = QVBoxLayout(self)
         mise_en_page.addLayout(haut)
