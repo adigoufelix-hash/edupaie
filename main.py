@@ -20,7 +20,7 @@ def main():
     eleves = EleveRepository(conn)
     paiements = PaiementRepository(conn)
     fenetre = MainWindow(EleveService(eleves), PaiementService(eleves, paiements))
-    fenetre.resize(1000, 600)
+    fenetre.resize(1180, 720)
     fenetre.show()
     sys.exit(app.exec())
 
