@@ -51,6 +51,9 @@ class PaiementService:
             "total_encaisse": sum(s.total_paye for _, s in situations),
             "total_restant": sum(s.solde for _, s in situations),
             "nb_non_soldes": sum(1 for _, s in situations if s.solde > 0),
+            "nb_soldes": sum(1 for _, s in situations if s.statut == STATUT_SOLDE),
+            "nb_partiels": sum(1 for _, s in situations if s.statut == STATUT_PARTIEL),
+            "nb_non_payes": sum(1 for _, s in situations if s.statut == STATUT_NON_PAYE),
         }                    
 
     def historique(self, eleve_id: int) -> list[Paiement]:
@@ -71,6 +74,7 @@ class PaiementService:
         date_paiement = self._valider_date(date_paiement)
         if mode not in MODES:
             raise ErreurMetier("Mode de paiement invalide.")
+        
 
         sit = self.situation(eleve_id)
         if sit.solde == 0:
@@ -90,6 +94,11 @@ class PaiementService:
             if paiement is None:
              raise ErreurMetier("Reçu introuvable.")
             return self.eleves.get(paiement.eleve_id), paiement
+    
+    def derniers_paiements(self, limite: int = 6) -> list[tuple]:
+        """Derniers paiements enregistrés : liste de (élève, paiement)."""
+        return [(self.eleves.get(p.eleve_id), p)
+                for p in self.paiements.derniers(limite)]
 
     @staticmethod
     def _valider_montant(valeur) -> int:

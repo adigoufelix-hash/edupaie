@@ -51,3 +51,9 @@ class PaiementRepository:
             (eleve_id,),
         ).fetchone()
         return row["total"]
+
+    def derniers(self, limite: int = 6) -> list[Paiement]:
+        rows = self.conn.execute(
+            "SELECT * FROM paiement ORDER BY date_paiement DESC, id DESC LIMIT ?",
+            (limite,)).fetchall()
+        return [self._vers_paiement(r) for r in rows]
