@@ -29,6 +29,14 @@ class TestDashboard(unittest.TestCase):
         self.assertEqual(d["total_restant"], 110000)
         self.assertEqual(d["nb_non_soldes"], 2)
 
+    def test_derniers_et_repartition(self):
+        self.service.enregistrer_paiement(self.a, 100000, "2026-09-01", "especes")
+        self.service.enregistrer_paiement(self.b, 20000, "2026-09-02", "cheque")
+        dernier_eleve, dernier_paiement = self.service.derniers_paiements(1)[0]
+        self.assertEqual((dernier_eleve.nom, dernier_paiement.montant), ("B", 20000))
+        d = self.service.tableau_de_bord()
+        self.assertEqual((d["nb_soldes"], d["nb_partiels"], d["nb_non_payes"]), (1, 1, 1))
+
 
 if __name__ == "__main__":
     unittest.main()
