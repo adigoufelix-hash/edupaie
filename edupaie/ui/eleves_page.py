@@ -3,7 +3,7 @@ from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QAbstractItemView, QComboBox, QHBoxLayout,
                                QLineEdit, QMessageBox, QPushButton,
                                QTableWidget, QTableWidgetItem, QVBoxLayout,
-                               QWidget)
+                               QWidget, QHeaderView)
 
 from edupaie.services.paiement_service import ErreurMetier
 from edupaie.ui.eleve_dialog import EleveDialog
@@ -37,6 +37,9 @@ class ElevesPage(QWidget):
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.horizontalHeader().setStretchLastSection(True)
         preparer_table(self.table)
+        entete = self.table.horizontalHeader()
+        for col in (3, 4, 5, 6, 7):
+            entete.setSectionResizeMode(col, QHeaderView.ResizeMode.ResizeToContents)
         ajouter = QPushButton("Ajouter")
         modifier = QPushButton("Modifier")
         supprimer = QPushButton("Supprimer")
