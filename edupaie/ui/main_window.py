@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
         marque.setObjectName("marque")
         cote = QWidget()
         cote.setObjectName("cote")
-        cote.setFixedWidth(210)
+        cote.setFixedWidth(190)
         colonne = QVBoxLayout(cote)
         colonne.setContentsMargins(0, 0, 0, 0)
         colonne.setSpacing(0)

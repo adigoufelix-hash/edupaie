@@ -96,6 +96,8 @@ class DashboardPage(QWidget):
 
         defilement = QScrollArea()
         defilement.setWidgetResizable(True)
+        defilement.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         defilement.setWidget(contenu)
         externe = QVBoxLayout(self)
         externe.setContentsMargins(0, 0, 0, 0)

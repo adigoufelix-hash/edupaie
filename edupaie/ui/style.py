@@ -36,7 +36,7 @@ QHeaderView::section { background: #eef2ff; color: #3730a3; font-weight: bold;
 /* Tableau de bord et fiche */
 QFrame#carte { background: white; border: 1px solid #e5e7eb; border-radius: 12px; }
 QLabel#titreCarte { color: #6b7280; font-size: 12px; }
-QLabel#valeurCarte { color: #1e1b4b; font-size: 24px; font-weight: bold; }
+QLabel#valeurCarte { color: #1e1b4b; font-size: 20px; font-weight: bold; }
 QLabel#entete { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; }
 QWidget#fondPage { background: #f4f6fb; }
 QScrollArea { border: none; background: #f4f6fb; }
