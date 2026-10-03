@@ -10,6 +10,7 @@ from edupaie.ui.eleve_dialog import EleveDialog
 from edupaie.ui.paiement_dialog import PaiementDialog
 from edupaie.ui.fiche_eleve_dialog import FicheEleveDialog
 from edupaie.ui.style import preparer_table
+from edupaie.ui.widgets import cellule_pastille
 
 def fcfa(valeur: int) -> str:
     return f"{valeur:,}".replace(",", " ") + " FCFA"
@@ -79,21 +80,19 @@ class ElevesPage(QWidget):
         index = self.filtre.findData(courante)
         self.filtre.setCurrentIndex(max(index, 0))
         self.filtre.blockSignals(False)
-
+    
     def recharger(self):
         situations = self.paiement_service.situations(
             self.recherche.text().strip(), self.filtre.currentData(),
             self.filtre_statut.currentData())
-        couleurs = {"Soldé": "#2e7d32", "Partiellement payé": "#ef6c00",
-                    "Non payé": "#c62828"}
         self.table.setRowCount(len(situations))
         for ligne, (e, s) in enumerate(situations):
             valeurs = [e.nom, e.prenom, e.classe, e.annee_scolaire,
-                       fcfa(s.total_du), fcfa(s.total_paye), fcfa(s.solde), s.statut]
+                       fcfa(s.total_du), fcfa(s.total_paye), fcfa(s.solde)]
             for col, texte in enumerate(valeurs):
                 self.table.setItem(ligne, col, QTableWidgetItem(texte))
             self.table.item(ligne, 0).setData(Qt.UserRole, e.id)
-            self.table.item(ligne, 7).setForeground(QColor(couleurs[s.statut]))
+            self.table.setCellWidget(ligne, 7, cellule_pastille(s.statut))
 
     def _eleve_selectionne(self):
         ligne = self.table.currentRow()
