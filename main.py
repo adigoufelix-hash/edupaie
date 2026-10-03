@@ -21,7 +21,7 @@ def main():
     paiements = PaiementRepository(conn)
     fenetre = MainWindow(EleveService(eleves), PaiementService(eleves, paiements))
     fenetre.resize(1180, 720)
-    fenetre.show()
+    fenetre.showMaximized()
     sys.exit(app.exec())
 
 if __name__ == "__main__":

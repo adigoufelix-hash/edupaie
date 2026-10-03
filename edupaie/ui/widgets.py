@@ -74,7 +74,7 @@ class AnneauProgression(QWidget):
     def __init__(self):
         super().__init__()
         self.pourcentage = 0.0
-        self.setMinimumSize(190, 190)
+        self.setMinimumSize(150, 150)
 
     def definir(self, pourcentage):
         self.pourcentage = max(0.0, min(100.0, pourcentage))
