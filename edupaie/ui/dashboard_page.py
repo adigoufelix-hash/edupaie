@@ -26,7 +26,7 @@ class DashboardPage(QWidget):
         self.k_non_soldes = CarteKpi("⚠", "Élèves non soldés", "#fee2e2")
         cartes = QHBoxLayout()
         for carte in (self.k_eleves, self.k_encaisse, self.k_restant, self.k_non_soldes):
-            cartes.addWidget(carte)
+            cartes.addWidget(carte, 1)
 
         # Panneau de gauche : anneau de recouvrement
         self.anneau = AnneauProgression()
@@ -77,6 +77,9 @@ class DashboardPage(QWidget):
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         preparer_table(self.table)
+        self.vide = QLabel("Aucun paiement enregistré pour cet élève.")
+        self.vide.setObjectName("sousTitre")
+        self.vide.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.table.setMinimumHeight(340)
         self.filtre.currentIndexChanged.connect(self._remplir_table)
         entete_liste = QHBoxLayout()
