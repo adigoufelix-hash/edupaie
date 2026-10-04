@@ -26,7 +26,7 @@ class DashboardPage(QWidget):
         self.k_non_soldes = CarteKpi("⚠", "Élèves non soldés", "#fee2e2")
         cartes = QHBoxLayout()
         for carte in (self.k_eleves, self.k_encaisse, self.k_restant, self.k_non_soldes):
-            cartes.addWidget(carte)
+            cartes.addWidget(carte, 1)
 
         # Panneau de gauche : anneau de recouvrement
         self.anneau = AnneauProgression()

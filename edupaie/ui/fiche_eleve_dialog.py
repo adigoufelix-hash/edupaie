@@ -37,7 +37,7 @@ class FicheEleveDialog(QDialog):
         self.k_solde = CarteKpi("⏳", "Solde restant", "#fef3c7")
         cartes = QHBoxLayout()
         for carte in (self.k_frais, self.k_regle, self.k_solde):
-            cartes.addWidget(carte)
+            cartes.addWidget(carte, 1)
 
         self.table = QTableWidget(0, 5)
         self.table.setHorizontalHeaderLabels(
@@ -46,6 +46,9 @@ class FicheEleveDialog(QDialog):
         self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         preparer_table(self.table)
+        self.vide = QLabel("Aucun paiement enregistré pour cet élève.")
+        self.vide.setObjectName("sousTitre")
+        self.vide.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         payer = QPushButton("Enregistrer un paiement")
         voir = QPushButton("Voir / imprimer le reçu")
@@ -60,6 +63,7 @@ class FicheEleveDialog(QDialog):
         mise_en_page.addWidget(self.entete)
         mise_en_page.addLayout(cartes)
         mise_en_page.addWidget(QLabel("<b>Historique des paiements</b>"))
+        mise_en_page.addWidget(self.table)
         mise_en_page.addWidget(self.table)
         mise_en_page.addLayout(boutons)
 
@@ -80,6 +84,7 @@ class FicheEleveDialog(QDialog):
         self.k_regle.maj(fcfa(s.total_paye))
         self.k_solde.maj(fcfa(s.solde))
         paiements = self.service.historique(e.id)
+        self.vide.setVisible(not paiements)
         self.table.setRowCount(len(paiements))
         for ligne, p in enumerate(paiements):
             valeurs = [p.numero_recu, date_fr(p.date_paiement),
