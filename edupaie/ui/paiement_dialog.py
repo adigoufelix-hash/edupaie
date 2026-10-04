@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (QComboBox, QDateEdit, QDialog, QDialogButtonBox,
                                QFormLayout, QLabel, QLineEdit, QMessageBox)
 
 from edupaie.services.paiement_service import ErreurMetier
-
+from edupaie.ui.recu_action import ouvrir_recu
 MODES = [("Espèces", "especes"), ("Chèque", "cheque"),
          ("Virement", "virement"), ("Mobile money", "mobile_money")]
 
@@ -49,8 +49,11 @@ class PaiementDialog(QDialog):
         except ErreurMetier as e:
             QMessageBox.warning(self, "Paiement refusé", str(e))
             return
-        QMessageBox.information(
+        reponse = QMessageBox.question(
             self, "Paiement enregistré",
             f"Reçu n° {self.paiement.numero_recu}\n"
-            f"Solde restant : {fcfa(self.paiement.solde_apres)}")
+            f"Solde restant : {fcfa(self.paiement.solde_apres)}\n\n"
+            "Ouvrir le reçu maintenant ?")
+        if reponse == QMessageBox.StandardButton.Yes:
+            ouvrir_recu(self, self.service, self.paiement.id)
         self.accept()

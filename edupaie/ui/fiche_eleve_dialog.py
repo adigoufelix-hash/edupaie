@@ -1,16 +1,14 @@
-import os
-from pathlib import Path
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QAbstractItemView, QDialog, QHBoxLayout, QLabel,
                                QMessageBox, QPushButton, QTableWidget,
                                QTableWidgetItem, QVBoxLayout)
 
-from edupaie.services.paiement_service import ErreurMetier
-from edupaie.services.recu_pdf import generer_recu_pdf
+
 from edupaie.ui.paiement_dialog import MODES, PaiementDialog, fcfa
 from edupaie.ui.style import preparer_table
 from edupaie.ui.widgets import CarteKpi
+from edupaie.ui.recu_action import ouvrir_recu
 
 LIBELLES_MODES = {valeur: libelle for libelle, valeur in MODES}
 COULEURS = {"Soldé": "#166534", "Partiellement payé": "#9a3412",
@@ -108,11 +106,4 @@ class FicheEleveDialog(QDialog):
             QMessageBox.information(
                 self, "Sélection", "Sélectionne d'abord un paiement dans la liste.")
             return
-        paiement_id = self.table.item(ligne, 0).data(Qt.UserRole)
-        try:
-            eleve, paiement = self.service.recu(paiement_id)
-            dossier = Path.home() / "EduPaie" / "recus"
-            chemin = generer_recu_pdf(eleve, paiement, dossier)
-            os.startfile(chemin)
-        except (ErreurMetier, OSError) as e:
-            QMessageBox.warning(self, "Reçu indisponible", str(e))
+        ouvrir_recu(self, self.service, self.table.item(ligne, 0).data(Qt.UserRole))
