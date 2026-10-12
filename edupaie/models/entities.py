@@ -19,3 +19,9 @@ class Paiement:
         date_paiement: str
         mode: str
         solde_apres: int
+
+@dataclass
+class AnneeScolaire:
+    annee: str
+    date_debut: str
+    date_fin: str
