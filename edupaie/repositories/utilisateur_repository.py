@@ -1,15 +1,15 @@
-from edupaie.db.connection import get_connection
+from edupaie.db.connection import  transaction
 
 
 def get_by_login(login: str):
-    with get_connection() as con:
+    with transaction() as con:
         return con.execute(
             "SELECT * FROM utilisateur WHERE login = ? AND actif = 1", (login,)
         ).fetchone()
 
 
 def creer(login: str, nom_complet: str, mot_de_passe_hash: str, role: str) -> int:
-    with get_connection() as con:
+    with transaction() as con:
         cur = con.execute(
             "INSERT INTO utilisateur (login, nom_complet, mot_de_passe, role) "
             "VALUES (?, ?, ?, ?)",
@@ -19,5 +19,5 @@ def creer(login: str, nom_complet: str, mot_de_passe_hash: str, role: str) -> in
 
 
 def compter() -> int:
-    with get_connection() as con:
+    with transaction() as con:
         return con.execute("SELECT COUNT(*) FROM utilisateur").fetchone()[0]
