@@ -49,3 +49,13 @@ CREATE TABLE frais_classe (
 
 -- Lier chaque élève à une classe
 ALTER TABLE eleve ADD COLUMN classe_id INTEGER REFERENCES classe(id);
+
+CREATE TABLE IF NOT EXISTS utilisateur (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    login         TEXT NOT NULL UNIQUE,
+    nom_complet   TEXT NOT NULL,
+    mot_de_passe  TEXT NOT NULL,   -- format : iterations$sel$hash (hex)
+    role          TEXT NOT NULL CHECK (role IN ('admin', 'comptable', 'lecture')),
+    actif         INTEGER NOT NULL DEFAULT 1,
+    cree_le       TEXT NOT NULL DEFAULT (datetime('now'))
+);
