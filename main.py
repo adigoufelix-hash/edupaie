@@ -11,12 +11,19 @@ from edupaie.ui.main_window import MainWindow
 from edupaie.repositories.paiement_repository import PaiementRepository
 from edupaie.services.paiement_service import PaiementService
 from edupaie.ui.style import STYLE
+from PySide6.QtWidgets import QApplication, QDialog
+from edupaie.repositories.utilisateur_repository import UtilisateurRepository
+from edupaie.services.auth_service import AuthService
+from edupaie.ui.login_dialog import LoginDialog
 
 def main():
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     app.setStyleSheet(STYLE)
     conn = get_connection()
+    auth = AuthService(UtilisateurRepository(conn))
+    if LoginDialog(auth).exec() != QDialog.DialogCode.Accepted:
+        sys.exit(0)
     eleves = EleveRepository(conn)
     paiements = PaiementRepository(conn)
     fenetre = MainWindow(EleveService(eleves), PaiementService(eleves, paiements))
