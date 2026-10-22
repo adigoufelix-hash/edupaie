@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS eleve (
     prenom         TEXT    NOT NULL,
     classe         TEXT    NOT NULL,
     annee_scolaire TEXT    NOT NULL,
-    total_du       INTEGER NOT NULL CHECK (total_du >= 0)
+    total_du       INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS paiement (
@@ -41,14 +41,14 @@ CREATE TABLE classe (
 
 CREATE TABLE frais_classe (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    classe_id INTEGER NOT NULL REFERENCES classe(id),
+   
     libelle TEXT NOT NULL,             -- ex: "Scolarité T1"
     montant INTEGER NOT NULL,          -- en FCFA, sans décimales
     date_echeance TEXT
 );
 
 -- Lier chaque élève à une classe
-ALTER TABLE eleve ADD COLUMN classe_id INTEGER REFERENCES classe(id);
+
 
 CREATE TABLE IF NOT EXISTS utilisateur (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,

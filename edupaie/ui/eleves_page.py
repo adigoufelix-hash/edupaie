@@ -1,6 +1,8 @@
+from tkinter import dialog
+
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
-from PySide6.QtWidgets import (QAbstractItemView, QComboBox, QHBoxLayout,
+from PySide6.QtWidgets import (QAbstractItemView, QComboBox, QDialog, QHBoxLayout,
                                QLineEdit, QMessageBox, QPushButton,
                                QTableWidget, QTableWidgetItem, QVBoxLayout,
                                QWidget, QHeaderView)
@@ -106,9 +108,14 @@ class ElevesPage(QWidget):
         return next(e for e in self.service.lister() if e.id == eleve_id)
 
     def _ajouter(self):
-        if EleveDialog(self.service, parent=self).exec():
+        if EleveDialog(self.eleve_service, parent=self).exec()== QDialog.Accepted:
             self._remplir_classes()
             self.recharger()
+        
+        if dialog.exec() == QDialog.Accepted:
+            self.service.ajouter(dialog.donnees())
+            self._remplir_classes()   # met à jour le filtre
+            self.recharger()          # met à jour le tableau
 
     def _modifier(self):
         eleve = self._eleve_selectionne()
@@ -149,4 +156,5 @@ class ElevesPage(QWidget):
         if not eleve:
             return
         FicheEleveDialog(self.paiement_service, eleve, self).exec()
-        self.recharger()
+        
+       

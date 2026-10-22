@@ -3,6 +3,16 @@ from PySide6.QtWidgets import (QDialog, QDialogButtonBox, QFormLayout,
 
 from edupaie.services.paiement_service import ErreurMetier
 
+from datetime import date
+from PySide6.QtWidgets import QComboBox
+
+CLASSES = ["6e A", "6e B", "5e A", "5e B", "4e A", "4e B", "3e A", "3e B",
+           "2nde", "1ère", "Tle"]
+
+def annees_scolaires(n=5):
+    y = date.today().year
+    return [f"{a}-{a + 1}" for a in range(y - 2, y + n - 2)]
+
 
 class EleveDialog(QDialog):
     def __init__(self, service, eleve=None, parent=None):
@@ -10,13 +20,17 @@ class EleveDialog(QDialog):
         self.service, self.eleve = service, eleve
         self.setWindowTitle("Modifier l'élève" if eleve else "Nouvel élève")
         self.nom, self.prenom = QLineEdit(), QLineEdit()
-        self.classe, self.annee = QLineEdit(), QLineEdit("2026-2027")
-        self.total = QLineEdit()
+        self.classe = QComboBox()
+        self.classe.addItems(CLASSES)
+        self.classe.setEditable(True)
+
+        self.annee = QComboBox()
+        self.annee.addItems(annees_scolaires())
         if eleve:
             self.nom.setText(eleve.nom)
             self.prenom.setText(eleve.prenom)
-            self.classe.setText(eleve.classe)
-            self.annee.setText(eleve.annee_scolaire)
+            self.classe.setCurrentText(eleve.classe)
+            self.annee.setCurrentText(eleve.annee_scolaire)
             self.total.setText(str(eleve.total_du))
         form = QFormLayout(self)
         for libelle, champ in (("Nom", self.nom), ("Prénom", self.prenom),
@@ -32,9 +46,10 @@ class EleveDialog(QDialog):
     def _valider(self):
         try:
             self.service.enregistrer(
-                self.eleve.id if self.eleve else None, self.nom.text(),
-                self.prenom.text(), self.classe.text(), self.annee.text(),
-                self.total.text())
+            self.eleve.id if self.eleve else None, self.nom.text(),
+            self.prenom.text(), self.classe.currentText().strip(),
+            self.annee.currentText().strip(),
+            self.total.text())
         except ErreurMetier as e:
             QMessageBox.warning(self, "Données invalides", str(e))
             return
