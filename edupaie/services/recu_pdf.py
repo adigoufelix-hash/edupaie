@@ -105,6 +105,15 @@ def generer_recu_pdf(eleve, paiement, dossier) -> Path:
     _texte(pdf, 44, 184, 60, 5, etiquette, 9, True, encre, "C")
 
     _texte(pdf, 12, 197, 124, 5,
+          "Merci de conserver ce reçu. Il fait foi du paiement.",
+           8, False, GRIS, "C")
+    
+    if paiement.encaisse_par:
+        # Helvetica ne gère que le latin-1 : on évite un plantage sur un nom exotique
+        nom = paiement.encaisse_par.encode("latin-1", "replace").decode("latin-1")
+        _texte(pdf, 12, 193, 124, 5, f"Encaissé par : {nom}", 8, False, GRIS, "C")
+
+    _texte(pdf, 12, 200, 124, 5,
            "Merci de conserver ce reçu. Il fait foi du paiement.",
            8, False, GRIS, "C")
 
