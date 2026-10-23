@@ -15,6 +15,12 @@ class UtilisateurRepository:
         )
         self.conn.commit()
         return cur.lastrowid
-
+    
+        def maj_mot_de_passe(self, utilisateur_id: int, valeur: str) -> None:
+            with self.conn:  # commit automatique
+                self.conn.execute(
+                    "UPDATE utilisateur SET mot_de_passe = ? WHERE id = ?",
+                    (valeur, utilisateur_id))
     def compter(self) -> int:
         return self.conn.execute("SELECT COUNT(*) FROM utilisateur").fetchone()[0]
+    
