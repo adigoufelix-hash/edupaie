@@ -19,6 +19,14 @@ QPushButton:hover { background: #4338ca; }
 QPushButton:pressed { background: #3730a3; }
 QPushButton#danger { background: #dc2626; }
 QPushButton#danger:hover { background: #b91c1c; }
+QPushButton#danger:disabled {
+    background: #cbd5e1;
+    color: #94a3b8;
+}
+QPushButton:disabled {
+    background: #cbd5e1;
+    color: #94a3b8;
+}
 
 /* Champs */
 QLineEdit, QComboBox, QDateEdit { background: white; border: 1px solid #cbd5e1;
