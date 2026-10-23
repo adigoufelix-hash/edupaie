@@ -6,7 +6,15 @@ from edupaie.security import (
     verifier_complexite,
     verifier_stocke,
 )
+from edupaie.security import (
+    doit_etre_rehache,
+    hasher_pour_stockage,
+    verifier_complexite,
+    verifier_stocke,
+)
 from edupaie.services.paiement_service import ErreurMetier
+from edupaie.permissions import ROLES, a_permission
+
 
 MAX_ECHECS = 5
 
@@ -16,6 +24,10 @@ class AuthService:
         self.repo = repo
         self.utilisateur = None
         self._echecs = {}
+
+    def peut(self, permission: str) -> bool:
+        return self.utilisateur is not None and a_permission(
+        self.utilisateur["role"], permission)
 
     def aucun_utilisateur(self) -> bool:
         return self.repo.compter() == 0
@@ -30,6 +42,26 @@ class AuthService:
             self._echecs[login] = self._echecs.get(login, 0) + 1
             return None
         self._echecs.pop(login, None)
+    
+    def authentifier(self, login: str, mot_de_passe: str):
+        login = login.strip().lower()
+        if self._echecs.get(login, 0) >= MAX_ECHECS:
+            raise ErreurMetier(
+            "Trop de tentatives. Redémarrez l'application ou contactez l'administrateur.")
+        ligne = self.repo.get_by_login(login)
+        if ligne is None or not verifier_stocke(mot_de_passe, ligne["mot_de_passe"]):
+            self._echecs[login] = self._echecs.get(login, 0) + 1
+            return None
+        self._echecs.pop(login, None)
+        if doit_etre_rehache(ligne["mot_de_passe"]):
+            self.repo.maj_mot_de_passe(ligne["id"], hasher_pour_stockage(mot_de_passe))
+        self.utilisateur = {
+        "id": ligne["id"],
+        "login": ligne["login"],
+        "nom_complet": ligne["nom_complet"],
+        "role": ligne["role"],
+    }
+        return self.utilisateur
         self.utilisateur = {
             "id": ligne["id"],
             "login": ligne["login"],
