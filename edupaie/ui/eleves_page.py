@@ -1,28 +1,27 @@
-from tkinter import dialog
-
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QAbstractItemView, QComboBox, QDialog, QHBoxLayout,
-                               QLineEdit, QMessageBox, QPushButton,
+                               QHeaderView, QLineEdit, QMessageBox, QPushButton,
                                QTableWidget, QTableWidgetItem, QVBoxLayout,
-                               QWidget, QHeaderView)
+                               QWidget)
 
 from edupaie.services.paiement_service import ErreurMetier
 from edupaie.ui.eleve_dialog import EleveDialog
-from edupaie.ui.paiement_dialog import PaiementDialog
 from edupaie.ui.fiche_eleve_dialog import FicheEleveDialog
+from edupaie.ui.paiement_dialog import PaiementDialog
 from edupaie.ui.style import preparer_table
 from edupaie.ui.widgets import cellule_pastille
+
 
 def fcfa(valeur: int) -> str:
     return f"{valeur:,}".replace(",", " ") + " FCFA"
 
 
 class ElevesPage(QWidget):
-    def __init__(self, service, paiement_service):
+    def __init__(self, service, paiement_service, auth):
         super().__init__()
         self.service = service
         self.paiement_service = paiement_service
+        self.auth = auth
         self.recherche = QLineEdit()
         self.recherche.setPlaceholderText("Rechercher par nom ou prénom...")
         self.filtre = QComboBox()
@@ -31,7 +30,6 @@ class ElevesPage(QWidget):
         for statut in ("Soldé", "Partiellement payé", "Non payé"):
             self.filtre_statut.addItem(statut, statut)
         self.table = QTableWidget(0, 8)
-       
         self.table.setHorizontalHeaderLabels(
             ["Nom", "Prénom", "Classe", "Année", "Total dû", "Payé", "Solde", "Statut"])
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -42,25 +40,29 @@ class ElevesPage(QWidget):
         entete = self.table.horizontalHeader()
         for col in (3, 4, 5, 6, 7):
             entete.setSectionResizeMode(col, QHeaderView.ResizeMode.ResizeToContents)
+
         ajouter = QPushButton("Ajouter")
         modifier = QPushButton("Modifier")
         supprimer = QPushButton("Supprimer")
         supprimer.setObjectName("danger")
+        payer = QPushButton("Enregistrer un paiement")
+        fiche = QPushButton("Fiche et Historique")
+
         haut, bas = QHBoxLayout(), QHBoxLayout()
         haut.addWidget(self.recherche, 1)
         haut.addWidget(self.filtre)
         haut.addWidget(self.filtre_statut)
-        for b in (ajouter, modifier, supprimer):
+        for b in (ajouter, modifier, supprimer, payer, fiche):
             bas.addWidget(b)
-        payer = QPushButton("Enregistrer un paiement")
-        bas.addWidget(payer)
-        payer.clicked.connect(self._payer)
-        fiche = QPushButton("Fiche et Historique")
-        bas.addWidget(fiche)
-        fiche.clicked.connect(self._fiche)   
-        self.table.cellDoubleClicked.connect(lambda *_: self._fiche()) 
-           
-       
+
+        # Les boutons interdits au rôle de l'utilisateur connecté sont désactivés
+        droits = ((ajouter, "eleve.ecrire"), (modifier, "eleve.ecrire"),
+                  (supprimer, "eleve.supprimer"), (payer, "paiement.encaisser"))
+        for bouton, permission in droits:
+            if not self.auth.peut(permission):
+                bouton.setEnabled(False)
+                bouton.setToolTip("Non autorisé pour votre rôle")
+
         mise_en_page = QVBoxLayout(self)
         mise_en_page.addLayout(haut)
         mise_en_page.addWidget(self.table)
@@ -72,8 +74,18 @@ class ElevesPage(QWidget):
         ajouter.clicked.connect(self._ajouter)
         modifier.clicked.connect(self._modifier)
         supprimer.clicked.connect(self._supprimer)
+        payer.clicked.connect(self._payer)
+        fiche.clicked.connect(self._fiche)
+        self.table.cellDoubleClicked.connect(lambda *_: self._fiche())
         self._remplir_classes()
         self.recharger()
+
+    def _autorise(self, permission: str) -> bool:
+        if self.auth.peut(permission):
+            return True
+        QMessageBox.warning(self, "Accès refusé",
+                            "Votre rôle ne permet pas cette action.")
+        return False
 
     def _remplir_classes(self):
         self.filtre.blockSignals(True)
@@ -85,7 +97,7 @@ class ElevesPage(QWidget):
         index = self.filtre.findData(courante)
         self.filtre.setCurrentIndex(max(index, 0))
         self.filtre.blockSignals(False)
-    
+
     def recharger(self):
         situations = self.paiement_service.situations(
             self.recherche.text().strip(), self.filtre.currentData(),
@@ -108,22 +120,23 @@ class ElevesPage(QWidget):
         return next(e for e in self.service.lister() if e.id == eleve_id)
 
     def _ajouter(self):
-        if EleveDialog(self.eleve_service, parent=self).exec()== QDialog.Accepted:
+        if not self._autorise("eleve.ecrire"):
+            return
+        if EleveDialog(self.service, parent=self).exec() == QDialog.Accepted:
             self._remplir_classes()
             self.recharger()
-        
-        if dialog.exec() == QDialog.Accepted:
-            self.service.ajouter(dialog.donnees())
-            self._remplir_classes()   # met à jour le filtre
-            self.recharger()          # met à jour le tableau
 
     def _modifier(self):
+        if not self._autorise("eleve.ecrire"):
+            return
         eleve = self._eleve_selectionne()
         if eleve and EleveDialog(self.service, eleve, self).exec():
             self._remplir_classes()
             self.recharger()
 
     def _supprimer(self):
+        if not self._autorise("eleve.supprimer"):
+            return
         eleve = self._eleve_selectionne()
         if not eleve:
             return
@@ -139,9 +152,9 @@ class ElevesPage(QWidget):
         self._remplir_classes()
         self.recharger()
 
-  
-
     def _payer(self):
+        if not self._autorise("paiement.encaisser"):
+            return
         eleve = self._eleve_selectionne()
         if not eleve:
             return
@@ -150,11 +163,10 @@ class ElevesPage(QWidget):
                 self, "Déjà soldé", f"{eleve.nom} {eleve.prenom} a déjà tout payé.")
             return
         PaiementDialog(self.paiement_service, eleve, self).exec()
-        self.recharger() 
+        self.recharger()
+
     def _fiche(self):
         eleve = self._eleve_selectionne()
         if not eleve:
             return
         FicheEleveDialog(self.paiement_service, eleve, self).exec()
-        
-       
