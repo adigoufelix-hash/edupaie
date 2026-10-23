@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QListWidget,
 
 from edupaie.ui.dashboard_page import DashboardPage
 from edupaie.ui.eleves_page import ElevesPage
+from edupaie.ui.utilisateurs_page import UtilisateursPage
 
 
 class MainWindow(QMainWindow):
@@ -16,6 +17,8 @@ class MainWindow(QMainWindow):
         self.pages = QStackedWidget()
         self._ajouter_page("Élèves", ElevesPage(eleve_service, paiement_service, auth))
         self._ajouter_page("Tableau de bord", DashboardPage(paiement_service))
+        if auth.peut("utilisateur.gerer"):
+            self._ajouter_page("Utilisateurs", UtilisateursPage(auth))
         self.menu.currentRowChanged.connect(self.pages.setCurrentIndex)
         self.menu.setCurrentRow(0)
 

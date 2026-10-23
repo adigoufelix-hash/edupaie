@@ -28,6 +28,32 @@ class AuthService:
     def peut(self, permission: str) -> bool:
         return self.utilisateur is not None and a_permission(
         self.utilisateur["role"], permission)
+    
+    def _exiger_admin(self):
+        if not self.peut("utilisateur.gerer"):
+            raise ErreurMetier("Action réservée à l'administrateur.")
+
+    def lister_utilisateurs(self):
+        self._exiger_admin()
+        return self.repo.lister()
+
+    def reinitialiser_mot_de_passe(self, utilisateur_id: int, nouveau: str) -> None:
+        self._exiger_admin()
+        erreurs = verifier_complexite(nouveau)
+        if erreurs:
+            raise ErreurMetier("Mot de passe invalide : " + ", ".join(erreurs) + ".")
+        self.repo.maj_mot_de_passe(utilisateur_id, hasher_pour_stockage(nouveau))
+
+    def supprimer_utilisateur(self, utilisateur_id: int) -> None:
+        self._exiger_admin()
+        if utilisateur_id == self.utilisateur["id"]:
+            raise ErreurMetier("Vous ne pouvez pas supprimer votre propre compte.")
+        cible = self.repo.get(utilisateur_id)
+        if cible is None:
+            return
+        if cible["role"] == "admin" and self.repo.compter_admins() <= 1:
+            raise ErreurMetier("Il doit rester au moins un administrateur.")
+        self.repo.supprimer(utilisateur_id)
 
     def aucun_utilisateur(self) -> bool:
         return self.repo.compter() == 0
