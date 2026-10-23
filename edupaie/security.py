@@ -3,7 +3,7 @@ import hashlib
 import hmac
 import os
 
-ITERATIONS = 200_000
+ITERATIONS = 600_000
 LONGUEUR_MIN = 8
 
 
@@ -39,11 +39,19 @@ def hasher_pour_stockage(mot_de_passe: str) -> str:
     return f"{ITERATIONS}${sel}${hasher_mot_de_passe(mot_de_passe, sel)}"
 
 
+ITERATIONS = 600_000
+
 def verifier_stocke(mot_de_passe: str, stocke: str) -> bool:
     """Vérifie un mot de passe contre la valeur stockée en base."""
     try:
         iterations, sel, hash_attendu = stocke.split("$")
         calcule = hasher_mot_de_passe(mot_de_passe, sel, int(iterations))
-    except ValueError:
+        return hmac.compare_digest(calcule.encode(), hash_attendu.encode())
+    except (ValueError, TypeError):
         return False
-    return hmac.compare_digest(calcule, hash_attendu)
+    
+def doit_etre_rehache(stocke: str) -> bool:
+    try:
+        return int(stocke.split("$")[0]) < ITERATIONS
+    except ValueError:
+        return True
