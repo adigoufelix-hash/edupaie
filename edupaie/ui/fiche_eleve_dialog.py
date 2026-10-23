@@ -1,14 +1,12 @@
-
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QAbstractItemView, QDialog, QHBoxLayout, QLabel,
                                QMessageBox, QPushButton, QTableWidget,
                                QTableWidgetItem, QVBoxLayout)
 
-
 from edupaie.ui.paiement_dialog import MODES, PaiementDialog, fcfa
+from edupaie.ui.recu_action import ouvrir_recu
 from edupaie.ui.style import preparer_table
 from edupaie.ui.widgets import CarteKpi
-from edupaie.ui.recu_action import ouvrir_recu
 
 LIBELLES_MODES = {valeur: libelle for libelle, valeur in MODES}
 COULEURS = {"Soldé": "#166534", "Partiellement payé": "#9a3412",
@@ -25,7 +23,7 @@ class FicheEleveDialog(QDialog):
         super().__init__(parent)
         self.service, self.eleve = paiement_service, eleve
         self.setWindowTitle(f"Fiche élève - {eleve.nom} {eleve.prenom}")
-        self.resize(820, 560)
+        self.resize(900, 560)
 
         self.entete = QLabel()
         self.entete.setObjectName("entete")
@@ -37,13 +35,14 @@ class FicheEleveDialog(QDialog):
         for carte in (self.k_frais, self.k_regle, self.k_solde):
             cartes.addWidget(carte, 1)
 
-        self.table = QTableWidget(0, 5)
+        self.table = QTableWidget(0, 6)
         self.table.setHorizontalHeaderLabels(
-            ["N° de reçu", "Date", "Mode", "Montant", "Solde après"])
+            ["N° de reçu", "Date", "Mode", "Montant", "Solde après", "Encaissé par"])
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         preparer_table(self.table)
+        self.table.horizontalHeader().setStretchLastSection(True)
         self.vide = QLabel("Aucun paiement enregistré pour cet élève.")
         self.vide.setObjectName("sousTitre")
         self.vide.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -62,7 +61,7 @@ class FicheEleveDialog(QDialog):
         mise_en_page.addLayout(cartes)
         mise_en_page.addWidget(QLabel("<b>Historique des paiements</b>"))
         mise_en_page.addWidget(self.table)
-        mise_en_page.addWidget(self.table)
+        mise_en_page.addWidget(self.vide)
         mise_en_page.addLayout(boutons)
 
         payer.clicked.connect(self._payer)
@@ -87,7 +86,8 @@ class FicheEleveDialog(QDialog):
         for ligne, p in enumerate(paiements):
             valeurs = [p.numero_recu, date_fr(p.date_paiement),
                        LIBELLES_MODES.get(p.mode, p.mode),
-                       fcfa(p.montant), fcfa(p.solde_apres)]
+                       fcfa(p.montant), fcfa(p.solde_apres),
+                       p.encaisse_par or "-"]
             for col, texte in enumerate(valeurs):
                 self.table.setItem(ligne, col, QTableWidgetItem(texte))
             self.table.item(ligne, 0).setData(Qt.UserRole, p.id)
