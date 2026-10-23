@@ -1,8 +1,8 @@
-import sqlite3
-
 from PySide6.QtWidgets import (
     QDialog, QFormLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout,
 )
+
+from edupaie.services.paiement_service import ErreurMetier
 
 
 class LoginDialog(QDialog):
@@ -38,7 +38,9 @@ class LoginDialog(QDialog):
         self.erreur.setWordWrap(True)
         self.erreur.setStyleSheet("color: #c0392b;")
 
-        self.bouton = QPushButton("Créer le compte" if self.premier_lancement else "Se connecter")
+        self.bouton = QPushButton(
+            "Créer le compte" if self.premier_lancement else "Se connecter"
+        )
         self.bouton.setDefault(True)
         self.bouton.clicked.connect(self._valider)
 
@@ -64,7 +66,12 @@ class LoginDialog(QDialog):
             self._connecter()
 
     def _connecter(self):
-        if self.auth.authentifier(self.login.text(), self.mdp.text()):
+        try:
+            utilisateur = self.auth.authentifier(self.login.text(), self.mdp.text())
+        except ErreurMetier as e:  # trop de tentatives
+            self.erreur.setText(str(e))
+            return
+        if utilisateur:
             self.accept()
             return
         self.essais += 1
@@ -86,11 +93,8 @@ class LoginDialog(QDialog):
             self.auth.creer_utilisateur(
                 self.login.text(), self.nom.text(), self.mdp.text(), "admin"
             )
-        except ValueError as e:
+        except (ErreurMetier, ValueError) as e:
             self.erreur.setText(str(e))
-            return
-        except sqlite3.IntegrityError:
-            self.erreur.setText("Cet identifiant existe déjà.")
             return
         self.auth.authentifier(self.login.text(), self.mdp.text())
         self.accept()
