@@ -3,7 +3,6 @@ import runpy
 import sys
 
 from PySide6.QtWidgets import QApplication, QDialog
-
 from edupaie.db.connection import get_connection
 from edupaie.repositories.eleve_repository import EleveRepository
 from edupaie.repositories.paiement_repository import PaiementRepository
