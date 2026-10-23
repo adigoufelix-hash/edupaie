@@ -30,12 +30,12 @@ def calculer_statut(total_du: int, total_paye: int) -> str:
 
 
 class PaiementService:
-    def __init__(self, eleve_repo, paiement_repo):
+    def __init__(self, eleve_repo, paiement_repo, auth=None):
         self.eleves = eleve_repo
         self.paiements = paiement_repo
+        self.auth = auth  # utilisateur connecté (None dans les tests)
 
     def situation(self, eleve_id: int) -> Situation:
-        
         eleve = self.eleves.get(eleve_id)
         if eleve is None:
             raise ErreurMetier("Élève introuvable.")
@@ -54,7 +54,7 @@ class PaiementService:
             "nb_soldes": sum(1 for _, s in situations if s.statut == STATUT_SOLDE),
             "nb_partiels": sum(1 for _, s in situations if s.statut == STATUT_PARTIEL),
             "nb_non_payes": sum(1 for _, s in situations if s.statut == STATUT_NON_PAYE),
-        }                    
+        }
 
     def historique(self, eleve_id: int) -> list[Paiement]:
         return self.paiements.lister_par_eleve(eleve_id)
@@ -67,14 +67,20 @@ class PaiementService:
             sit = self.situation(eleve.id)
             if statut is None or sit.statut == statut:
                 resultat.append((eleve, sit))
-        return resultat    
+        return resultat
 
     def enregistrer_paiement(self, eleve_id, montant, date_paiement, mode) -> Paiement:
+        utilisateur = None
+        if self.auth is not None:
+            if not self.auth.peut("paiement.encaisser"):
+                raise ErreurMetier(
+                    "Votre rôle ne permet pas d'enregistrer un paiement.")
+            utilisateur = self.auth.utilisateur
+
         montant = self._valider_montant(montant)
         date_paiement = self._valider_date(date_paiement)
         if mode not in MODES:
             raise ErreurMetier("Mode de paiement invalide.")
-        
 
         sit = self.situation(eleve_id)
         if sit.solde == 0:
@@ -83,18 +89,21 @@ class PaiementService:
             raise ErreurMetier(
                 f"Le montant saisi ({montant}) dépasse le solde restant ({sit.solde}).")
 
-        p = Paiement(None, eleve_id, None, montant, date_paiement, mode,
-                     sit.solde - montant)
+        p = Paiement(
+            None, eleve_id, None, montant, date_paiement, mode, sit.solde - montant,
+            utilisateur["id"] if utilisateur else None,
+            utilisateur["nom_complet"] if utilisateur else None,
+        )
         paiement_id = self.paiements.ajouter(p)
         return self.paiements.obtenir(paiement_id)  # avec son numéro de reçu
-    
+
     def recu(self, paiement_id: int):
-            """Retrouve un reçu déjà émis : retourne (élève, paiement)."""
-            paiement = self.paiements.obtenir(paiement_id)
-            if paiement is None:
-             raise ErreurMetier("Reçu introuvable.")
-            return self.eleves.get(paiement.eleve_id), paiement
-    
+        """Retrouve un reçu déjà émis : retourne (élève, paiement)."""
+        paiement = self.paiements.obtenir(paiement_id)
+        if paiement is None:
+            raise ErreurMetier("Reçu introuvable.")
+        return self.eleves.get(paiement.eleve_id), paiement
+
     def derniers_paiements(self, limite: int = 6) -> list[tuple]:
         """Derniers paiements enregistrés : liste de (élève, paiement)."""
         return [(self.eleves.get(p.eleve_id), p)

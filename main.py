@@ -1,8 +1,10 @@
 import os
 import runpy
+import signal
 import sys
 
 from PySide6.QtWidgets import QApplication, QDialog
+
 from edupaie.db.connection import get_connection
 from edupaie.repositories.eleve_repository import EleveRepository
 from edupaie.repositories.paiement_repository import PaiementRepository
@@ -24,6 +26,7 @@ def main():
         runpy.run_path("creer_base.py", run_name="__main__")
 
     app = QApplication(sys.argv)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     app.setStyle("Fusion")
     app.setStyleSheet(STYLE)
     conn = get_connection()
@@ -34,10 +37,18 @@ def main():
 
     # Connexion obligatoire, répétée après chaque déconnexion ou verrouillage
     while True:
-        if LoginDialog(auth).exec() != QDialog.Accepted:
+        login = LoginDialog(auth)
+        login.show()
+        login.raise_()
+        login.activateWindow()
+        if login.exec() != QDialog.Accepted:
             break
 
-        fenetre = MainWindow(EleveService(eleves), PaiementService(eleves, paiements), auth)
+        fenetre = MainWindow(
+            EleveService(eleves),
+            PaiementService(eleves, paiements, auth),
+            auth,
+        )
         fenetre.resize(1180, 720)
         fenetre.showMaximized()
 

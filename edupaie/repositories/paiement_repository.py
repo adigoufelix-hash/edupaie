@@ -13,15 +13,20 @@ class PaiementRepository:
             numero_recu=row["numero_recu"], montant=row["montant"],
             date_paiement=row["date_paiement"], mode=row["mode"],
             solde_apres=row["solde_apres"],
+            utilisateur_id=row["utilisateur_id"],
+            encaisse_par=row["encaisse_par"],
         )
+
     def ajouter(self, p: Paiement) -> int:
         """Insère le paiement et lui attribue son numéro de reçu (même transaction)."""
         with self.conn:  # commit ou rollback automatique
             cur = self.conn.execute(
                 """INSERT INTO paiement
-                   (eleve_id, montant, date_paiement, mode, solde_apres)
-                   VALUES (?, ?, ?, ?, ?)""",
-                (p.eleve_id, p.montant, p.date_paiement, p.mode, p.solde_apres),
+                   (eleve_id, montant, date_paiement, mode, solde_apres,
+                    utilisateur_id, encaisse_par)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (p.eleve_id, p.montant, p.date_paiement, p.mode, p.solde_apres,
+                 p.utilisateur_id, p.encaisse_par),
             )
             paiement_id = cur.lastrowid
             numero = f"REC-{p.date_paiement[:4]}-{paiement_id:06d}"

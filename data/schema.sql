@@ -9,47 +9,6 @@ CREATE TABLE IF NOT EXISTS eleve (
     total_du       INTEGER NOT NULL DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS paiement (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    eleve_id      INTEGER NOT NULL
-                  REFERENCES eleve(id) ON DELETE RESTRICT,
-    numero_recu   TEXT    UNIQUE,
-    montant       INTEGER NOT NULL CHECK (montant > 0),
-    date_paiement TEXT    NOT NULL,
-    mode          TEXT    NOT NULL
-                  CHECK (mode IN ('especes','cheque','virement','mobile_money')),
-    solde_apres   INTEGER NOT NULL CHECK (solde_apres >= 0)
-);
-
-CREATE INDEX IF NOT EXISTS idx_paiement_eleve ON paiement(eleve_id);
-
-CREATE TABLE annee_scolaire (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    libelle TEXT NOT NULL UNIQUE,      -- ex: "2026-2027"
-    date_debut TEXT NOT NULL,
-    date_fin TEXT NOT NULL,
-    active INTEGER NOT NULL DEFAULT 0  -- une seule active à la fois
-);
-
-CREATE TABLE classe (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nom TEXT NOT NULL,                 -- ex: "6ème A"
-    niveau TEXT NOT NULL,              -- ex: "6ème"
-    annee_id INTEGER NOT NULL REFERENCES annee_scolaire(id),
-    UNIQUE (nom, annee_id)
-);
-
-CREATE TABLE frais_classe (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-   
-    libelle TEXT NOT NULL,             -- ex: "Scolarité T1"
-    montant INTEGER NOT NULL,          -- en FCFA, sans décimales
-    date_echeance TEXT
-);
-
--- Lier chaque élève à une classe
-
-
 CREATE TABLE IF NOT EXISTS utilisateur (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     login         TEXT NOT NULL UNIQUE,
@@ -59,3 +18,19 @@ CREATE TABLE IF NOT EXISTS utilisateur (
     actif         INTEGER NOT NULL DEFAULT 1,
     cree_le       TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS paiement (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    eleve_id       INTEGER NOT NULL
+                   REFERENCES eleve(id) ON DELETE RESTRICT,
+    numero_recu    TEXT    UNIQUE,
+    montant        INTEGER NOT NULL CHECK (montant > 0),
+    date_paiement  TEXT    NOT NULL,
+    mode           TEXT    NOT NULL
+                   CHECK (mode IN ('especes','cheque','virement','mobile_money')),
+    solde_apres    INTEGER NOT NULL CHECK (solde_apres >= 0),
+    utilisateur_id INTEGER REFERENCES utilisateur(id) ON DELETE SET NULL,
+    encaisse_par   TEXT    -- nom du caissier au moment du paiement
+);
+
+CREATE INDEX IF NOT EXISTS idx_paiement_eleve ON paiement(eleve_id);

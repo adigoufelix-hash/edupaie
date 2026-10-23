@@ -19,6 +19,8 @@ class Paiement:
         date_paiement: str
         mode: str
         solde_apres: int
+        utilisateur_id: int | None = None
+        encaisse_par: str | None = None
 
 @dataclass
 class AnneeScolaire:
