@@ -1,8 +1,8 @@
-"""Rôles et permissions d'EduPaie."""
+"""Rôles et permissions d'EduPaie (alignés sur la contrainte CHECK de schema.sql)."""
 
 ADMIN = "admin"
-CAISSIER = "caissier"
-CONSULTANT = "consultant"
+COMPTABLE = "comptable"
+LECTURE = "lecture"
 
 PERMISSIONS = {
     ADMIN: {
@@ -10,12 +10,12 @@ PERMISSIONS = {
         "paiement.lire", "paiement.encaisser",
         "recu.imprimer", "dashboard.voir", "utilisateur.gerer",
     },
-    CAISSIER: {
+    COMPTABLE: {
         "eleve.lire", "eleve.ecrire",
         "paiement.lire", "paiement.encaisser",
         "recu.imprimer", "dashboard.voir",
     },
-    CONSULTANT: {
+    LECTURE: {
         "eleve.lire", "paiement.lire", "dashboard.voir",
     },
 }

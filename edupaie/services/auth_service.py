@@ -116,5 +116,7 @@ class AuthService:
         try:
             return self.repo.creer(
                 login, nom_complet.strip(), hasher_pour_stockage(mot_de_passe), role)
-        except sqlite3.IntegrityError:
-            raise ErreurMetier("Ce login existe déjà.")
+        except sqlite3.IntegrityError as e:
+            if "UNIQUE" in str(e):
+                raise ErreurMetier("Ce login existe déjà.")
+            raise ErreurMetier(f"Enregistrement impossible : {e}")
