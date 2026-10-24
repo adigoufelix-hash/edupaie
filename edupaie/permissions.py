@@ -8,7 +8,8 @@ PERMISSIONS = {
     ADMIN: {
         "eleve.lire", "eleve.ecrire", "eleve.supprimer",
         "paiement.lire", "paiement.encaisser",
-        "recu.imprimer", "dashboard.voir", "utilisateur.gerer",
+        "recu.imprimer", "dashboard.voir",
+        "utilisateur.gerer", "frais.gerer",
     },
     COMPTABLE: {
         "eleve.lire", "eleve.ecrire",

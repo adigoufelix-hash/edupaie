@@ -17,9 +17,10 @@ def fcfa(valeur: int) -> str:
 
 
 class ElevesPage(QWidget):
-    def __init__(self, service, paiement_service, auth):
+    def __init__(self, service, paiement_service, auth, frais_service=None):
         super().__init__()
         self.service = service
+        self.frais = frais_service
         self.paiement_service = paiement_service
         self.auth = auth
         self.recherche = QLineEdit()
@@ -122,7 +123,7 @@ class ElevesPage(QWidget):
     def _ajouter(self):
         if not self._autorise("eleve.ecrire"):
             return
-        if EleveDialog(self.service, parent=self).exec() == QDialog.Accepted:
+        if EleveDialog(self.service, parent=self, frais=self.frais).exec() == QDialog.Accepted:
             self._remplir_classes()
             self.recharger()
 
@@ -130,7 +131,7 @@ class ElevesPage(QWidget):
         if not self._autorise("eleve.ecrire"):
             return
         eleve = self._eleve_selectionne()
-        if eleve and EleveDialog(self.service, eleve, self).exec():
+        if eleve and EleveDialog(self.service, eleve, self, frais=self.frais).exec():
             self._remplir_classes()
             self.recharger()
 

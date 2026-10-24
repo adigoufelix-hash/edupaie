@@ -34,3 +34,12 @@ CREATE TABLE IF NOT EXISTS paiement (
 );
 
 CREATE INDEX IF NOT EXISTS idx_paiement_eleve ON paiement(eleve_id);
+
+CREATE TABLE IF NOT EXISTS frais_classe (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    classe         TEXT    NOT NULL,
+    annee_scolaire TEXT    NOT NULL,
+    libelle        TEXT    NOT NULL COLLATE NOCASE,
+    montant        INTEGER NOT NULL CHECK (montant > 0),
+    UNIQUE (classe, annee_scolaire, libelle)
+);
