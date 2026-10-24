@@ -20,13 +20,32 @@ def _chemin_schema() -> Path:
 
 DB_PATH = dossier_donnees() / "data" / "edupaie.db"
 
+# Colonnes ajoutées après la première version : ajoutées aux bases existantes.
+COLONNES_PAIEMENT = {
+    "utilisateur_id": "INTEGER REFERENCES utilisateur(id) ON DELETE SET NULL",
+    "encaisse_par": "TEXT",
+    "annule": "INTEGER NOT NULL DEFAULT 0",
+    "motif_annulation": "TEXT",
+    "annule_par": "TEXT",
+    "annule_le": "TEXT",
+}
+
+
+def _migrer(conn: sqlite3.Connection) -> None:
+    existantes = {r[1] for r in conn.execute("PRAGMA table_info(paiement)")}
+    for nom, definition in COLONNES_PAIEMENT.items():
+        if nom not in existantes:
+            conn.execute(f"ALTER TABLE paiement ADD COLUMN {nom} {definition}")
+    conn.commit()
+
 
 def initialiser_base() -> None:
-    """Crée la base si besoin et ajoute les tables manquantes (sans rien effacer)."""
+    """Crée la base si besoin, ajoute les tables et colonnes manquantes."""
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     try:
         conn.executescript(_chemin_schema().read_text(encoding="utf-8"))
+        _migrer(conn)
     finally:
         conn.close()
 

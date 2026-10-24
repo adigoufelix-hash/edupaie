@@ -1,8 +1,10 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (QAbstractItemView, QDialog, QHBoxLayout, QLabel,
-                               QMessageBox, QPushButton, QTableWidget,
+from PySide6.QtGui import QColor
+from PySide6.QtWidgets import (QAbstractItemView, QDialog, QHBoxLayout, QInputDialog,
+                               QLabel, QMessageBox, QPushButton, QTableWidget,
                                QTableWidgetItem, QVBoxLayout)
 
+from edupaie.services.paiement_service import ErreurMetier
 from edupaie.ui.paiement_dialog import MODES, PaiementDialog, fcfa
 from edupaie.ui.recu_action import ouvrir_recu
 from edupaie.ui.style import preparer_table
@@ -23,7 +25,7 @@ class FicheEleveDialog(QDialog):
         super().__init__(parent)
         self.service, self.eleve = paiement_service, eleve
         self.setWindowTitle(f"Fiche élève - {eleve.nom} {eleve.prenom}")
-        self.resize(900, 560)
+        self.resize(980, 580)
 
         self.entete = QLabel()
         self.entete.setObjectName("entete")
@@ -35,9 +37,10 @@ class FicheEleveDialog(QDialog):
         for carte in (self.k_frais, self.k_regle, self.k_solde):
             cartes.addWidget(carte, 1)
 
-        self.table = QTableWidget(0, 6)
+        self.table = QTableWidget(0, 7)
         self.table.setHorizontalHeaderLabels(
-            ["N° de reçu", "Date", "Mode", "Montant", "Solde après", "Encaissé par"])
+            ["N° de reçu", "Date", "Mode", "Montant", "Solde après",
+             "Encaissé par", "État"])
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -49,10 +52,16 @@ class FicheEleveDialog(QDialog):
 
         payer = QPushButton("Enregistrer un paiement")
         voir = QPushButton("Voir / imprimer le reçu")
+        annuler = QPushButton("Annuler le paiement")
+        annuler.setObjectName("danger")
+        if not self.service.peut_annuler():
+            annuler.setEnabled(False)
+            annuler.setToolTip("Réservé à l'administrateur")
         fermer = QPushButton("Fermer")
         boutons = QHBoxLayout()
         boutons.addWidget(payer)
         boutons.addWidget(voir)
+        boutons.addWidget(annuler)
         boutons.addStretch()
         boutons.addWidget(fermer)
 
@@ -66,6 +75,7 @@ class FicheEleveDialog(QDialog):
 
         payer.clicked.connect(self._payer)
         voir.clicked.connect(self._recu)
+        annuler.clicked.connect(self._annuler)
         fermer.clicked.connect(self.accept)
         self.table.cellDoubleClicked.connect(lambda *_: self._recu())
         self.recharger()
@@ -87,9 +97,19 @@ class FicheEleveDialog(QDialog):
             valeurs = [p.numero_recu, date_fr(p.date_paiement),
                        LIBELLES_MODES.get(p.mode, p.mode),
                        fcfa(p.montant), fcfa(p.solde_apres),
-                       p.encaisse_par or "-"]
+                       p.encaisse_par or "-",
+                       "ANNULÉ" if p.annule else "Valide"]
             for col, texte in enumerate(valeurs):
-                self.table.setItem(ligne, col, QTableWidgetItem(texte))
+                item = QTableWidgetItem(texte)
+                if p.annule:
+                    police = item.font()
+                    police.setStrikeOut(col != 6)
+                    item.setFont(police)
+                    item.setForeground(QColor("#991b1b" if col == 6 else "#9ca3af"))
+                    item.setToolTip(
+                        f"Annulé le {(p.annule_le or '')[:10]} par "
+                        f"{p.annule_par or '-'}\nMotif : {p.motif_annulation or '-'}")
+                self.table.setItem(ligne, col, item)
             self.table.item(ligne, 0).setData(Qt.UserRole, p.id)
 
     def _payer(self):
@@ -100,10 +120,39 @@ class FicheEleveDialog(QDialog):
         PaiementDialog(self.service, self.eleve, self).exec()
         self.recharger()
 
-    def _recu(self):
+    def _paiement_selectionne(self):
         ligne = self.table.currentRow()
         if ligne < 0:
             QMessageBox.information(
                 self, "Sélection", "Sélectionne d'abord un paiement dans la liste.")
+            return None
+        return ligne
+
+    def _recu(self):
+        ligne = self._paiement_selectionne()
+        if ligne is None:
             return
         ouvrir_recu(self, self.service, self.table.item(ligne, 0).data(Qt.UserRole))
+
+    def _annuler(self):
+        ligne = self._paiement_selectionne()
+        if ligne is None:
+            return
+        if self.table.item(ligne, 6).text() == "ANNULÉ":
+            QMessageBox.information(self, "Déjà annulé", "Ce paiement est déjà annulé.")
+            return
+        numero = self.table.item(ligne, 0).text()
+        montant = self.table.item(ligne, 3).text()
+        motif, ok = QInputDialog.getText(
+            self, "Annuler le paiement",
+            f"Reçu {numero} ({montant}).\n"
+            "Cette action est définitive : le paiement restera visible mais ne sera "
+            "plus compté.\n\nMotif de l'annulation (obligatoire) :")
+        if not ok:
+            return
+        try:
+            self.service.annuler_paiement(self.table.item(ligne, 0).data(Qt.UserRole), motif)
+        except ErreurMetier as e:
+            QMessageBox.warning(self, "Annulation impossible", str(e))
+            return
+        self.recharger()

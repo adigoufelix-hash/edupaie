@@ -30,7 +30,11 @@ CREATE TABLE IF NOT EXISTS paiement (
                    CHECK (mode IN ('especes','cheque','virement','mobile_money')),
     solde_apres    INTEGER NOT NULL CHECK (solde_apres >= 0),
     utilisateur_id INTEGER REFERENCES utilisateur(id) ON DELETE SET NULL,
-    encaisse_par   TEXT    -- nom du caissier au moment du paiement
+    encaisse_par   TEXT,   -- nom du caissier au moment du paiement
+    annule           INTEGER NOT NULL DEFAULT 0,
+    motif_annulation TEXT,
+    annule_par       TEXT,
+    annule_le        TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_paiement_eleve ON paiement(eleve_id);

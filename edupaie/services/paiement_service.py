@@ -97,6 +97,29 @@ class PaiementService:
         paiement_id = self.paiements.ajouter(p)
         return self.paiements.obtenir(paiement_id)  # avec son numéro de reçu
 
+    def peut_annuler(self) -> bool:
+        return self.auth is None or self.auth.peut("paiement.annuler")
+
+    def annuler_paiement(self, paiement_id: int, motif: str) -> Paiement:
+        """Annule un paiement (jamais supprimé) ; motif obligatoire."""
+        if not self.peut_annuler():
+            raise ErreurMetier("Seul un administrateur peut annuler un paiement.")
+        motif = str(motif).strip()
+        if len(motif) < 5:
+            raise ErreurMetier(
+                "Le motif de l'annulation est obligatoire (5 caractères minimum).")
+        paiement = self.paiements.obtenir(paiement_id)
+        if paiement is None:
+            raise ErreurMetier("Paiement introuvable.")
+        if paiement.annule:
+            raise ErreurMetier("Ce paiement est déjà annulé.")
+        par = None
+        if self.auth is not None and self.auth.utilisateur is not None:
+            par = self.auth.utilisateur["nom_complet"]
+        quand = datetime.now().isoformat(timespec="seconds")
+        self.paiements.annuler(paiement_id, motif, par, quand)
+        return self.paiements.obtenir(paiement_id)
+
     def recu(self, paiement_id: int):
         """Retrouve un reçu déjà émis : retourne (élève, paiement)."""
         paiement = self.paiements.obtenir(paiement_id)
@@ -105,7 +128,7 @@ class PaiementService:
         return self.eleves.get(paiement.eleve_id), paiement
 
     def derniers_paiements(self, limite: int = 6) -> list[tuple]:
-        """Derniers paiements enregistrés : liste de (élève, paiement)."""
+        """Derniers paiements valides : liste de (élève, paiement)."""
         return [(self.eleves.get(p.eleve_id), p)
                 for p in self.paiements.derniers(limite)]
 

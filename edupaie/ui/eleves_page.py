@@ -171,3 +171,4 @@ class ElevesPage(QWidget):
         if not eleve:
             return
         FicheEleveDialog(self.paiement_service, eleve, self).exec()
+        self.recharger()

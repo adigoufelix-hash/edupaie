@@ -18,6 +18,7 @@ GRIS = (107, 114, 128)
 BLANC = (255, 255, 255)
 VERT, FOND_VERT = (22, 101, 52), (220, 252, 231)
 ORANGE, FOND_ORANGE = (154, 52, 18), (255, 237, 213)
+ROUGE, FOND_ROUGE = (153, 27, 27), (254, 226, 226)
 
 
 def _montant(valeur: int) -> str:
@@ -96,13 +97,12 @@ def generer_recu_pdf(eleve, paiement, dossier) -> Path:
         y += 9
 
     # Pastille de statut
-    if paiement.solde_apres == 0:
+    if paiement.annule:
+        fond, encre, etiquette = FOND_ROUGE, ROUGE, "REÇU ANNULÉ"
+    elif paiement.solde_apres == 0:
         fond, encre, etiquette = FOND_VERT, VERT, "SOLDÉ"
     else:
         fond, encre, etiquette = FOND_ORANGE, ORANGE, "PAIEMENT PARTIEL"
-    pdf.set_fill_color(*fond)
-    _arrondi(pdf, 44, 182, 60, 9, 4.5, "F")
-    _texte(pdf, 44, 184, 60, 5, etiquette, 9, True, encre, "C")
 
     _texte(pdf, 12, 197, 124, 5,
           "Merci de conserver ce reçu. Il fait foi du paiement.",
@@ -113,10 +113,19 @@ def generer_recu_pdf(eleve, paiement, dossier) -> Path:
         nom = paiement.encaisse_par.encode("latin-1", "replace").decode("latin-1")
         _texte(pdf, 12, 193, 124, 5, f"Encaissé par : {nom}", 8, False, GRIS, "C")
 
-    _texte(pdf, 12, 200, 124, 5,
-           "Merci de conserver ce reçu. Il fait foi du paiement.",
-           8, False, GRIS, "C")
-
+    if paiement.annule:
+        motif = (paiement.motif_annulation or "").encode(
+            "latin-1", "replace").decode("latin-1")
+        if len(motif) > 55:
+            motif = motif[:52] + "..."
+        quand = _date_fr(paiement.annule_le[:10]) if paiement.annule_le else ""
+        _texte(pdf, 12, 200, 124, 5, f"Annulé le {quand} : {motif}",
+               8, True, ROUGE, "C")
+    else:
+        _texte(pdf, 12, 200, 124, 5,
+               "Merci de conserver ce reçu. Il fait foi du paiement.",
+               8, False, GRIS, "C")
+        
     dossier = Path(dossier)
     dossier.mkdir(parents=True, exist_ok=True)
     chemin = dossier / f"{paiement.numero_recu}.pdf"
