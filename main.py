@@ -1,10 +1,11 @@
 import os
-import runpy
+import sqlite3
+
 import signal
 import sys
 
 from PySide6.QtWidgets import QApplication, QDialog
-
+from pathlib import Path
 from edupaie.db.connection import get_connection
 from edupaie.repositories.eleve_repository import EleveRepository
 from edupaie.repositories.paiement_repository import PaiementRepository
@@ -19,11 +20,29 @@ from edupaie.ui.style import STYLE
 
 DELAI_INACTIVITE_MS = 5 * 60 * 1000  # 5 minutes
 
+def preparer_dossier_de_travail():
+    """Dans l'exécutable, on travaille à côté de l'exe : data/ et recus/ y restent."""
+    if getattr(sys, "frozen", False):
+        os.chdir(Path(sys.executable).parent)
 
+
+def initialiser_base():
+    """Crée data/edupaie.db à partir du schéma embarqué si elle n'existe pas."""
+    chemin = Path("data/edupaie.db")
+    if chemin.exists():
+        return
+    chemin.parent.mkdir(exist_ok=True)
+    ressources = Path(getattr(sys, "_MEIPASS", "."))
+    schema = ressources / "data" / "schema.sql"
+    conn = sqlite3.connect(chemin)
+    conn.executescript(schema.read_text(encoding="utf-8"))
+    conn.close()
 def main():
-    if not os.path.exists("data/edupaie.db"):
-        os.makedirs("data", exist_ok=True)
-        runpy.run_path("creer_base.py", run_name="__main__")
+    preparer_dossier_de_travail()
+    initialiser_base()
+
+    app = QApplication(sys.argv)
+    ...
 
     app = QApplication(sys.argv)
     signal.signal(signal.SIGINT, signal.SIG_DFL)
