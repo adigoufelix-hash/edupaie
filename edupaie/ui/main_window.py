@@ -4,14 +4,16 @@ from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QListWidget,
 
 from edupaie.ui.dashboard_page import DashboardPage
 from edupaie.ui.eleves_page import ElevesPage
+from edupaie.ui.mot_de_passe_dialog import MotDePasseDialog
 from edupaie.ui.utilisateurs_page import UtilisateursPage
 
 
 class MainWindow(QMainWindow):
     def __init__(self, eleve_service, paiement_service, auth):
         super().__init__()
-        self.deconnexion = False  # passe à True si on se déconnecte ou se verrouille
+        self.deconnexion = False  # True si on se déconnecte ou se verrouille
         self.setWindowTitle("EduPaie - Gestion des paiements scolaires")
+
         self.menu = QListWidget()
         self.menu.setObjectName("menu")
         self.pages = QStackedWidget()
@@ -25,12 +27,14 @@ class MainWindow(QMainWindow):
         marque = QLabel("EduPaie")
         marque.setObjectName("marque")
 
+        btn_mdp = QPushButton("Mon mot de passe")
+        btn_mdp.setObjectName("motdepasse")
+        btn_mdp.clicked.connect(lambda: MotDePasseDialog(auth, self).exec())
+
         btn_deconnexion = QPushButton("Se déconnecter")
         btn_deconnexion.setObjectName("deconnexion")
-        btn_deconnexion.setStyleSheet(
-            "background:#c0392b; color:white; font-weight:bold; padding:10px; border:none;"
-        )
         btn_deconnexion.clicked.connect(self.deconnecter)
+
         cote = QWidget()
         cote.setObjectName("cote")
         cote.setFixedWidth(190)
@@ -39,6 +43,7 @@ class MainWindow(QMainWindow):
         colonne.setSpacing(0)
         colonne.addWidget(marque)
         colonne.addWidget(self.menu, 1)
+        colonne.addWidget(btn_mdp)
         colonne.addWidget(btn_deconnexion)
 
         centre = QWidget()

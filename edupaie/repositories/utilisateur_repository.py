@@ -16,7 +16,8 @@ class UtilisateurRepository:
 
     def get_by_login(self, login: str):
         return self.conn.execute(
-            "SELECT * FROM utilisateur WHERE login = ?", (login,)).fetchone()
+            "SELECT * FROM utilisateur WHERE login = ? COLLATE NOCASE", (login,)
+        ).fetchone()
 
     def get(self, utilisateur_id: int):
         return self.conn.execute(
