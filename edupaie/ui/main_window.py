@@ -7,10 +7,12 @@ from edupaie.ui.eleves_page import ElevesPage
 from edupaie.ui.mot_de_passe_dialog import MotDePasseDialog
 from edupaie.ui.utilisateurs_page import UtilisateursPage
 from edupaie.ui.frais_page import FraisPage
+from edupaie.ui.sauvegardes_page import SauvegardesPage
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, eleve_service, paiement_service, auth, frais_service=None):
+    def __init__(self, eleve_service, paiement_service, auth,
+                 frais_service=None, sauvegarde_service=None):
         super().__init__()
         self.deconnexion = False  # True si on se déconnecte ou se verrouille
         self.setWindowTitle("EduPaie - Gestion des paiements scolaires")
@@ -24,6 +26,8 @@ class MainWindow(QMainWindow):
             self._ajouter_page("Classes et frais", FraisPage(frais_service))
         if auth.peut("utilisateur.gerer"):
             self._ajouter_page("Utilisateurs", UtilisateursPage(auth))
+        if sauvegarde_service is not None and auth.peut("sauvegarde.gerer"):
+            self._ajouter_page("Sauvegardes", SauvegardesPage(sauvegarde_service))
         self.menu.currentRowChanged.connect(self.pages.setCurrentIndex)
         self.menu.setCurrentRow(0)
 

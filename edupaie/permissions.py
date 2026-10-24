@@ -9,7 +9,7 @@ PERMISSIONS = {
         "eleve.lire", "eleve.ecrire", "eleve.supprimer",
         "paiement.lire", "paiement.encaisser",
         "recu.imprimer", "dashboard.voir",
-        "utilisateur.gerer", "frais.gerer",
+        "utilisateur.gerer", "frais.gerer", "sauvegarde.gerer",
     },
     COMPTABLE: {
         "eleve.lire", "eleve.ecrire",

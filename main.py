@@ -1,12 +1,10 @@
 import os
 import signal
-import sqlite3
 import sys
-from pathlib import Path
 
 from PySide6.QtWidgets import QApplication, QDialog
 
-from edupaie.db.connection import get_connection
+from edupaie.db.connection import dossier_donnees, get_connection, initialiser_base
 from edupaie.repositories.eleve_repository import EleveRepository
 from edupaie.repositories.frais_repository import FraisRepository
 from edupaie.repositories.paiement_repository import PaiementRepository
@@ -15,6 +13,7 @@ from edupaie.services.auth_service import AuthService
 from edupaie.services.eleve_service import EleveService
 from edupaie.services.frais_service import FraisService
 from edupaie.services.paiement_service import PaiementService
+from edupaie.services.sauvegarde_service import SauvegardeService
 from edupaie.ui.inactivite import DetecteurInactivite
 from edupaie.ui.login_dialog import LoginDialog
 from edupaie.ui.main_window import MainWindow
@@ -24,21 +23,19 @@ DELAI_INACTIVITE_MS = 5 * 60 * 1000  # 5 minutes
 
 
 def preparer_dossier_de_travail():
-    """Version installée : base et reçus vont dans %LOCALAPPDATA%\\EduPaie."""
+    """Version installée : reçus et données vont dans %LOCALAPPDATA%\\EduPaie."""
     if getattr(sys, "frozen", False):
-        dossier = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "EduPaie"
+        dossier = dossier_donnees()
         dossier.mkdir(parents=True, exist_ok=True)
         os.chdir(dossier)
 
 
-def initialiser_base():
-    """Crée la base si besoin et ajoute les tables manquantes (sans rien effacer)."""
-    Path("data").mkdir(exist_ok=True)
-    ressources = Path(getattr(sys, "_MEIPASS", "."))
-    schema = ressources / "data" / "schema.sql"
-    conn = sqlite3.connect("data/edupaie.db")
-    conn.executescript(schema.read_text(encoding="utf-8"))
-    conn.close()
+def sauvegarder_sans_bloquer(service):
+    """Une sauvegarde ratée ne doit jamais empêcher d'ouvrir ou de fermer l'application."""
+    try:
+        service.sauvegarde_auto()
+    except Exception as e:
+        print("Sauvegarde automatique impossible :", e, file=sys.stderr)
 
 
 def main():
@@ -55,6 +52,8 @@ def main():
 
     auth = AuthService(UtilisateurRepository(conn))
     frais = FraisService(FraisRepository(conn), auth)
+    sauvegarde = SauvegardeService(auth)
+    sauvegarder_sans_bloquer(sauvegarde)  # au lancement
 
     # Connexion obligatoire, répétée après chaque déconnexion ou verrouillage
     while True:
@@ -70,6 +69,7 @@ def main():
             PaiementService(eleves, paiements, auth),
             auth,
             frais,
+            sauvegarde,
         )
         fenetre.resize(1180, 720)
         fenetre.showMaximized()
@@ -85,6 +85,7 @@ def main():
         if not fenetre.deconnexion:  # fenêtre fermée normalement : on quitte
             break
 
+    sauvegarder_sans_bloquer(sauvegarde)  # à la fermeture
     sys.exit(0)
 
 
