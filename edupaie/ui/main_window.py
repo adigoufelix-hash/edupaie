@@ -13,7 +13,8 @@ from edupaie.ui.utilisateurs_page import UtilisateursPage
 
 class MainWindow(QMainWindow):
     def __init__(self, eleve_service, paiement_service, auth,
-                 frais_service=None, sauvegarde_service=None, caisse_service=None):
+                 frais_service=None, sauvegarde_service=None, caisse_service=None,
+                 remise_service=None):
         super().__init__()
         self.deconnexion = False  # True si on se déconnecte ou se verrouille
         self.setWindowTitle("EduPaie - Gestion des paiements scolaires")
@@ -22,7 +23,7 @@ class MainWindow(QMainWindow):
         self.menu.setObjectName("menu")
         self.pages = QStackedWidget()
         self._ajouter_page("Élèves", ElevesPage(
-            eleve_service, paiement_service, auth, frais_service))
+            eleve_service, paiement_service, auth, frais_service, remise_service))
         self._ajouter_page("Tableau de bord", DashboardPage(paiement_service))
         if caisse_service is not None and auth.peut("caisse.voir"):
             self._ajouter_page("Clôture de caisse", CaissePage(caisse_service))

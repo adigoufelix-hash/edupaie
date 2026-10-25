@@ -17,10 +17,11 @@ def fcfa(valeur: int) -> str:
 
 
 class ElevesPage(QWidget):
-    def __init__(self, service, paiement_service, auth, frais_service=None):
+    def __init__(self, service, paiement_service, auth, frais_service=None, remise_service=None):
         super().__init__()
         self.service = service
         self.frais = frais_service
+        self.remises = remise_service
         self.paiement_service = paiement_service
         self.auth = auth
         self.recherche = QLineEdit()
@@ -170,5 +171,6 @@ class ElevesPage(QWidget):
         eleve = self._eleve_selectionne()
         if not eleve:
             return
-        FicheEleveDialog(self.paiement_service, eleve, self).exec()
+        FicheEleveDialog(self.paiement_service, eleve, self,
+                         remise_service=self.remises).exec()
         self.recharger()

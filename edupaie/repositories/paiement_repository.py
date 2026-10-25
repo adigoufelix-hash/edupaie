@@ -53,9 +53,15 @@ class PaiementRepository:
             )
             self._recalculer_soldes(row["eleve_id"])
 
+    def recalculer_soldes(self, eleve_id: int) -> None:
+        """À appeler après un changement de remise."""
+        with self.conn:
+            self._recalculer_soldes(eleve_id)
+
     def _recalculer_soldes(self, eleve_id: int) -> None:
-        total_du = self.conn.execute(
+        brut = self.conn.execute(
             "SELECT total_du FROM eleve WHERE id = ?", (eleve_id,)).fetchone()[0]
+        total_du = brut - self.total_remises(eleve_id)
         cumul = 0
         valides = self.conn.execute(
             """SELECT id, montant FROM paiement
@@ -79,27 +85,6 @@ class PaiementRepository:
         ).fetchall()
         return [self._vers_paiement(r) for r in rows]
 
-    def obtenir(self, paiement_id: int) -> Paiement | None:
-        row = self.conn.execute(
-            "SELECT * FROM paiement WHERE id = ?", (paiement_id,)
-        ).fetchone()
-        return self._vers_paiement(row) if row else None
-
-    def total_paye(self, eleve_id: int) -> int:
-        row = self.conn.execute(
-            """SELECT COALESCE(SUM(montant), 0) AS total FROM paiement
-               WHERE eleve_id = ? AND annule = 0""",
-            (eleve_id,),
-        ).fetchone()
-        return row["total"]
-
-    def derniers(self, limite: int = 6) -> list[Paiement]:
-        rows = self.conn.execute(
-            """SELECT * FROM paiement WHERE annule = 0
-               ORDER BY date_paiement DESC, id DESC LIMIT ?""",
-            (limite,)).fetchall()
-        return [self._vers_paiement(r) for r in rows]
-    
     def lister_periode(self, debut: str, fin: str, utilisateur_id: int | None = None):
         """Paiements d'une période (annulés compris), avec le nom de l'élève."""
         sql = """SELECT p.id, p.numero_recu, p.date_paiement, p.mode, p.montant,
@@ -114,3 +99,33 @@ class PaiementRepository:
             params.append(utilisateur_id)
         sql += " ORDER BY p.date_paiement, p.id"
         return self.conn.execute(sql, params).fetchall()
+
+    def obtenir(self, paiement_id: int) -> Paiement | None:
+        row = self.conn.execute(
+            "SELECT * FROM paiement WHERE id = ?", (paiement_id,)
+        ).fetchone()
+        return self._vers_paiement(row) if row else None
+
+    def total_paye(self, eleve_id: int) -> int:
+        row = self.conn.execute(
+            """SELECT COALESCE(SUM(montant), 0) AS total FROM paiement
+               WHERE eleve_id = ? AND annule = 0""",
+            (eleve_id,),
+        ).fetchone()
+        return row["total"]
+
+    def total_remises(self, eleve_id: int) -> int:
+        """Somme des remises actives (non annulées) d'un élève."""
+        row = self.conn.execute(
+            """SELECT COALESCE(SUM(montant), 0) FROM remise
+               WHERE eleve_id = ? AND annule = 0""",
+            (eleve_id,),
+        ).fetchone()
+        return row[0]
+
+    def derniers(self, limite: int = 6) -> list[Paiement]:
+        rows = self.conn.execute(
+            """SELECT * FROM paiement WHERE annule = 0
+               ORDER BY date_paiement DESC, id DESC LIMIT ?""",
+            (limite,)).fetchall()
+        return [self._vers_paiement(r) for r in rows]

@@ -3,7 +3,8 @@ import signal
 import sys
 
 from PySide6.QtWidgets import QApplication, QDialog
-
+from edupaie.repositories.remise_repository import RemiseRepository
+from edupaie.services.remise_service import RemiseService
 from edupaie.db.connection import dossier_donnees, get_connection, initialiser_base
 from edupaie.repositories.eleve_repository import EleveRepository
 from edupaie.repositories.frais_repository import FraisRepository
@@ -54,6 +55,7 @@ def main():
     frais = FraisService(FraisRepository(conn), auth)
     sauvegarde = SauvegardeService(auth)
     caisse = CaisseService(paiements, auth)
+    remises = RemiseService(RemiseRepository(conn), eleves, paiements, auth)
     sauvegarder_sans_bloquer(sauvegarde)  # au lancement
 
     # Connexion obligatoire, répétée après chaque déconnexion ou verrouillage
@@ -72,6 +74,7 @@ def main():
             frais,
             sauvegarde,
             caisse,
+            remises,
         )
         fenetre.resize(1180, 720)
         fenetre.showMaximized()

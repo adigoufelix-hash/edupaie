@@ -10,7 +10,7 @@ PERMISSIONS = {
         "paiement.lire", "paiement.encaisser", "paiement.annuler",
         "recu.imprimer", "dashboard.voir",
         "utilisateur.gerer", "frais.gerer", "sauvegarde.gerer",
-        "caisse.voir", "caisse.toutes",
+        "caisse.voir", "caisse.toutes", "remise.gerer",
     },
     COMPTABLE: {
         "eleve.lire", "eleve.ecrire",

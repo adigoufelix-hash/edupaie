@@ -47,3 +47,19 @@ CREATE TABLE IF NOT EXISTS frais_classe (
     montant        INTEGER NOT NULL CHECK (montant > 0),
     UNIQUE (classe, annee_scolaire, libelle)
 );
+CREATE TABLE IF NOT EXISTS remise (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    eleve_id         INTEGER NOT NULL REFERENCES eleve(id) ON DELETE CASCADE,
+    type             TEXT    NOT NULL CHECK (type IN ('montant', 'pourcentage')),
+    valeur           INTEGER NOT NULL CHECK (valeur > 0),
+    montant          INTEGER NOT NULL CHECK (montant > 0),  -- montant effectif, figé
+    motif            TEXT    NOT NULL,
+    accorde_par      TEXT,
+    accorde_le       TEXT    NOT NULL,
+    annule           INTEGER NOT NULL DEFAULT 0,
+    motif_annulation TEXT,
+    annule_par       TEXT,
+    annule_le        TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_remise_eleve ON remise(eleve_id);

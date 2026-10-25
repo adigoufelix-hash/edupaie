@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, datetime
 
 from edupaie.models.entities import Paiement
@@ -15,10 +15,11 @@ class ErreurMetier(Exception):
 
 @dataclass
 class Situation:
-    total_du: int
+    total_du: int       # total à payer, remises déduites
     total_paye: int
     solde: int
     statut: str
+    remise: int = 0     # total des remises actives
 
 
 def calculer_statut(total_du: int, total_paye: int) -> str:
@@ -39,9 +40,10 @@ class PaiementService:
         eleve = self.eleves.get(eleve_id)
         if eleve is None:
             raise ErreurMetier("Élève introuvable.")
+        remise = self.paiements.total_remises(eleve_id)
+        net = eleve.total_du - remise
         paye = self.paiements.total_paye(eleve_id)
-        return Situation(eleve.total_du, paye, eleve.total_du - paye,
-                         calculer_statut(eleve.total_du, paye))
+        return Situation(net, paye, net - paye, calculer_statut(net, paye), remise)
 
     def tableau_de_bord(self) -> dict:
         """Chiffres clés pour le tableau de bord."""
@@ -125,7 +127,11 @@ class PaiementService:
         paiement = self.paiements.obtenir(paiement_id)
         if paiement is None:
             raise ErreurMetier("Reçu introuvable.")
-        return self.eleves.get(paiement.eleve_id), paiement
+        eleve = self.eleves.get(paiement.eleve_id)
+        remise = self.paiements.total_remises(eleve.id)
+        if remise:
+            eleve = replace(eleve, total_du=eleve.total_du - remise)
+        return eleve, paiement
 
     def derniers_paiements(self, limite: int = 6) -> list[tuple]:
         """Derniers paiements valides : liste de (élève, paiement)."""
