@@ -18,7 +18,7 @@ from edupaie.ui.inactivite import DetecteurInactivite
 from edupaie.ui.login_dialog import LoginDialog
 from edupaie.ui.main_window import MainWindow
 from edupaie.ui.style import STYLE
-
+from edupaie.services.caisse_service import CaisseService
 DELAI_INACTIVITE_MS = 5 * 60 * 1000  # 5 minutes
 
 
@@ -53,6 +53,7 @@ def main():
     auth = AuthService(UtilisateurRepository(conn))
     frais = FraisService(FraisRepository(conn), auth)
     sauvegarde = SauvegardeService(auth)
+    caisse = CaisseService(paiements, auth)
     sauvegarder_sans_bloquer(sauvegarde)  # au lancement
 
     # Connexion obligatoire, répétée après chaque déconnexion ou verrouillage
@@ -70,6 +71,7 @@ def main():
             auth,
             frais,
             sauvegarde,
+            caisse,
         )
         fenetre.resize(1180, 720)
         fenetre.showMaximized()

@@ -7,14 +7,16 @@ LECTURE = "lecture"
 PERMISSIONS = {
     ADMIN: {
         "eleve.lire", "eleve.ecrire", "eleve.supprimer",
-        "paiement.lire", "paiement.encaisser",
+        "paiement.lire", "paiement.encaisser", "paiement.annuler",
         "recu.imprimer", "dashboard.voir",
-        "utilisateur.gerer", "frais.gerer", "sauvegarde.gerer", "paiement.annuler",
+        "utilisateur.gerer", "frais.gerer", "sauvegarde.gerer",
+        "caisse.voir", "caisse.toutes",
     },
     COMPTABLE: {
         "eleve.lire", "eleve.ecrire",
         "paiement.lire", "paiement.encaisser",
         "recu.imprimer", "dashboard.voir",
+        "caisse.voir",
     },
     LECTURE: {
         "eleve.lire", "paiement.lire", "dashboard.voir",

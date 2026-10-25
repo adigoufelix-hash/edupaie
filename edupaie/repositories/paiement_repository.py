@@ -99,3 +99,18 @@ class PaiementRepository:
                ORDER BY date_paiement DESC, id DESC LIMIT ?""",
             (limite,)).fetchall()
         return [self._vers_paiement(r) for r in rows]
+    
+    def lister_periode(self, debut: str, fin: str, utilisateur_id: int | None = None):
+        """Paiements d'une période (annulés compris), avec le nom de l'élève."""
+        sql = """SELECT p.id, p.numero_recu, p.date_paiement, p.mode, p.montant,
+                        p.encaisse_par, p.utilisateur_id, p.annule,
+                        p.motif_annulation, p.annule_par, p.annule_le,
+                        e.nom, e.prenom, e.classe
+                 FROM paiement p JOIN eleve e ON e.id = p.eleve_id
+                 WHERE p.date_paiement BETWEEN ? AND ?"""
+        params = [debut, fin]
+        if utilisateur_id is not None:
+            sql += " AND p.utilisateur_id = ?"
+            params.append(utilisateur_id)
+        sql += " ORDER BY p.date_paiement, p.id"
+        return self.conn.execute(sql, params).fetchall()

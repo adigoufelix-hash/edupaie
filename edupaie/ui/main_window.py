@@ -2,17 +2,18 @@ from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QListWidget,
                                QMainWindow, QPushButton, QStackedWidget,
                                QVBoxLayout, QWidget)
 
+from edupaie.ui.caisse_page import CaissePage
 from edupaie.ui.dashboard_page import DashboardPage
 from edupaie.ui.eleves_page import ElevesPage
-from edupaie.ui.mot_de_passe_dialog import MotDePasseDialog
-from edupaie.ui.utilisateurs_page import UtilisateursPage
 from edupaie.ui.frais_page import FraisPage
+from edupaie.ui.mot_de_passe_dialog import MotDePasseDialog
 from edupaie.ui.sauvegardes_page import SauvegardesPage
+from edupaie.ui.utilisateurs_page import UtilisateursPage
 
 
 class MainWindow(QMainWindow):
     def __init__(self, eleve_service, paiement_service, auth,
-                 frais_service=None, sauvegarde_service=None):
+                 frais_service=None, sauvegarde_service=None, caisse_service=None):
         super().__init__()
         self.deconnexion = False  # True si on se déconnecte ou se verrouille
         self.setWindowTitle("EduPaie - Gestion des paiements scolaires")
@@ -20,8 +21,11 @@ class MainWindow(QMainWindow):
         self.menu = QListWidget()
         self.menu.setObjectName("menu")
         self.pages = QStackedWidget()
-        self._ajouter_page("Élèves", ElevesPage(eleve_service, paiement_service, auth, frais_service))
+        self._ajouter_page("Élèves", ElevesPage(
+            eleve_service, paiement_service, auth, frais_service))
         self._ajouter_page("Tableau de bord", DashboardPage(paiement_service))
+        if caisse_service is not None and auth.peut("caisse.voir"):
+            self._ajouter_page("Clôture de caisse", CaissePage(caisse_service))
         if frais_service is not None and auth.peut("frais.gerer"):
             self._ajouter_page("Classes et frais", FraisPage(frais_service))
         if auth.peut("utilisateur.gerer"):
