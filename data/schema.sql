@@ -63,3 +63,19 @@ CREATE TABLE IF NOT EXISTS remise (
 );
 
 CREATE INDEX IF NOT EXISTS idx_remise_eleve ON remise(eleve_id);
+
+CREATE TABLE IF NOT EXISTS echeance (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    classe         TEXT    NOT NULL,
+    annee_scolaire TEXT    NOT NULL,
+    libelle        TEXT    NOT NULL COLLATE NOCASE,
+    date_limite    TEXT    NOT NULL,
+    pourcentage    INTEGER NOT NULL CHECK (pourcentage BETWEEN 1 AND 100),
+    UNIQUE (classe, annee_scolaire, libelle)
+);
+
+CREATE TABLE IF NOT EXISTS contact_eleve (
+    eleve_id  INTEGER PRIMARY KEY REFERENCES eleve(id) ON DELETE CASCADE,
+    tuteur    TEXT,
+    telephone TEXT
+);

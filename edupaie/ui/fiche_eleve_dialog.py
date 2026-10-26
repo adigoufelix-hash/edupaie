@@ -10,6 +10,7 @@ from edupaie.ui.recu_action import ouvrir_recu
 from edupaie.ui.remise_dialog import RemiseDialog
 from edupaie.ui.style import preparer_table
 from edupaie.ui.widgets import CarteKpi
+from edupaie.ui.contact_dialog import ContactDialog
 
 LIBELLES_MODES = {valeur: libelle for libelle, valeur in MODES}
 COULEURS = {"Soldé": "#166534", "Partiellement payé": "#9a3412",
@@ -33,10 +34,11 @@ def _table(colonnes):
 
 
 class FicheEleveDialog(QDialog):
-    def __init__(self, paiement_service, eleve, parent=None, remise_service=None):
+    def __init__(self, paiement_service, eleve, parent=None, remise_service=None, echeancier_service=None):
         super().__init__(parent)
         self.service, self.eleve = paiement_service, eleve
         self.remises = remise_service
+        self.echeancier = echeancier_service
         self.setWindowTitle(f"Fiche élève - {eleve.nom} {eleve.prenom}")
         self.resize(1000, 700)
 
@@ -76,9 +78,16 @@ class FicheEleveDialog(QDialog):
                 bouton.setEnabled(False)
                 bouton.setToolTip("Réservé à l'administrateur")
         fermer = QPushButton("Fermer")
+        contact = QPushButton("Contact du parent")
+        if self.echeancier is None:
+            contact.hide()
+        elif not self.echeancier.peut_modifier_contact():
+            contact.setEnabled(False)
+            contact.setToolTip("Non autorisé pour votre rôle")
+        contact.clicked.connect(self._contact)
 
         boutons = QHBoxLayout()
-        for bouton in (payer, voir, annuler, remise, annuler_remise):
+        for bouton in (payer, voir, annuler, remise, annuler_remise, contact):
             boutons.addWidget(bouton)
         boutons.addStretch()
         boutons.addWidget(fermer)
@@ -106,6 +115,9 @@ class FicheEleveDialog(QDialog):
         fermer.clicked.connect(self.accept)
         self.table.cellDoubleClicked.connect(lambda *_: self._recu())
         self.recharger()
+    def _contact(self):
+        ContactDialog(self.echeancier, self.eleve.id,
+                      f"{self.eleve.nom} {self.eleve.prenom}", self).exec()
 
     def recharger(self):
         e = self.eleve

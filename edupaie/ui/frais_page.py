@@ -9,6 +9,7 @@ from edupaie.services.paiement_service import ErreurMetier
 from edupaie.ui.eleve_dialog import CLASSES, annee_courante, annees_scolaires
 from edupaie.ui.paiement_dialog import fcfa
 from edupaie.ui.style import preparer_table
+from edupaie.ui.echeancier_dialog import EcheancierDialog
 
 
 class LigneFraisDialog(QDialog):
@@ -49,9 +50,10 @@ class LigneFraisDialog(QDialog):
 
 
 class FraisPage(QWidget):
-    def __init__(self, service):
+    def __init__(self, service, echeancier_service=None):
         super().__init__()
         self.service = service
+        self.echeancier = echeancier_service
 
         self.classe = QComboBox()
         self.classe.setEditable(True)
@@ -88,7 +90,11 @@ class FraisPage(QWidget):
         haut.addWidget(QLabel("Année scolaire"))
         haut.addWidget(self.annee, 1)
         bas = QHBoxLayout()
-        for b in (ajouter, modifier, supprimer, copier):
+        echeancier = QPushButton("Échéancier de la classe")
+        echeancier.clicked.connect(self._echeancier)
+        if echeancier_service is None:
+            echeancier.hide()
+        for b in (ajouter, modifier, supprimer, copier, echeancier):
             bas.addWidget(b)
 
         mise_en_page = QVBoxLayout(self)
@@ -100,6 +106,11 @@ class FraisPage(QWidget):
         self.classe.currentTextChanged.connect(self.recharger)
         self.annee.currentTextChanged.connect(self.recharger)
         self.recharger()
+    def _echeancier(self):
+        if not self._classe() or not self._annee():
+            QMessageBox.information(self, "Classe", "Indique d'abord la classe et l'année.")
+            return
+        EcheancierDialog(self.echeancier, self._classe(), self._annee(), self).exec()
 
     def _classe(self) -> str:
         return self.classe.currentText().strip()

@@ -2,6 +2,9 @@ import os
 import signal
 import sys
 
+from edupaie.repositories.contact_repository import ContactRepository
+from edupaie.repositories.echeance_repository import EcheanceRepository
+from edupaie.services.echeancier_service import EcheancierService
 from PySide6.QtWidgets import QApplication, QDialog
 from edupaie.repositories.remise_repository import RemiseRepository
 from edupaie.services.remise_service import RemiseService
@@ -56,6 +59,8 @@ def main():
     sauvegarde = SauvegardeService(auth)
     caisse = CaisseService(paiements, auth)
     remises = RemiseService(RemiseRepository(conn), eleves, paiements, auth)
+    echeancier = EcheancierService(
+        EcheanceRepository(conn), eleves, paiements, ContactRepository(conn), auth)
     sauvegarder_sans_bloquer(sauvegarde)  # au lancement
 
     # Connexion obligatoire, répétée après chaque déconnexion ou verrouillage
@@ -75,6 +80,7 @@ def main():
             sauvegarde,
             caisse,
             remises,
+            echeancier,
         )
         fenetre.resize(1180, 720)
         fenetre.showMaximized()

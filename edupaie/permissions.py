@@ -10,13 +10,13 @@ PERMISSIONS = {
         "paiement.lire", "paiement.encaisser", "paiement.annuler",
         "recu.imprimer", "dashboard.voir",
         "utilisateur.gerer", "frais.gerer", "sauvegarde.gerer",
-        "caisse.voir", "caisse.toutes", "remise.gerer",
+        "caisse.voir", "caisse.toutes", "remise.gerer", "impayes.voir",
     },
     COMPTABLE: {
         "eleve.lire", "eleve.ecrire",
         "paiement.lire", "paiement.encaisser",
         "recu.imprimer", "dashboard.voir",
-        "caisse.voir",
+        "caisse.voir", "impayes.voir",
     },
     LECTURE: {
         "eleve.lire", "paiement.lire", "dashboard.voir",
