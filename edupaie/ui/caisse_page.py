@@ -5,7 +5,9 @@ from PySide6.QtWidgets import (QAbstractItemView, QDateEdit, QHBoxLayout, QLabel
                                QTableWidgetItem, QVBoxLayout, QWidget)
 
 from edupaie.services.cloture_pdf import generer_cloture_pdf
+from edupaie.services.export_excel import exporter_cloture
 from edupaie.services.paiement_service import MODES, ErreurMetier
+from edupaie.ui.fichiers import apres_export
 from edupaie.ui.paiement_dialog import MODES as MODES_UI
 from edupaie.ui.paiement_dialog import fcfa
 from edupaie.ui.style import preparer_table
@@ -46,6 +48,8 @@ class CaissePage(QWidget):
 
         exporter = QPushButton("Exporter en PDF")
         exporter.clicked.connect(self._exporter)
+        excel = QPushButton("Exporter en Excel")
+        excel.clicked.connect(self._exporter_excel)
 
         haut = QHBoxLayout()
         haut.addWidget(QLabel("Du"))
@@ -56,6 +60,7 @@ class CaissePage(QWidget):
         haut.addWidget(mois)
         haut.addStretch()
         haut.addWidget(exporter)
+        haut.addWidget(excel)
         mise_en_page = QVBoxLayout(self)
         mise_en_page.addLayout(haut)
         mise_en_page.addWidget(self.resume)
@@ -107,18 +112,33 @@ class CaissePage(QWidget):
                     item.setFont(police)
                 self.table.setItem(i, col, item)
 
-    def _exporter(self):
+    def _vide(self) -> bool:
         c = self.cloture
         if c is None:
             QMessageBox.information(self, "Clôture", "Choisis d'abord une période valide.")
-            return
+            return True
         if not c["nb"] and not c["annules"]["nb"]:
-            QMessageBox.information(self, "Clôture",
-                                    "Aucun paiement sur cette période : rien à imprimer.")
+            QMessageBox.information(
+                self, "Clôture", "Aucun paiement sur cette période : rien à exporter.")
+            return True
+        return False
+
+    def _exporter(self):
+        if self._vide():
             return
         try:
-            chemin = generer_cloture_pdf(c, self.dossier_pdf)
+            chemin = generer_cloture_pdf(self.cloture, self.dossier_pdf)
         except OSError as e:
             QMessageBox.warning(self, "Export impossible", str(e))
             return
         QDesktopServices.openUrl(QUrl.fromLocalFile(str(chemin.resolve())))
+
+    def _exporter_excel(self):
+        if self._vide():
+            return
+        try:
+            chemin = exporter_cloture(self.cloture, "exports")
+        except OSError as e:
+            QMessageBox.warning(self, "Export impossible", str(e))
+            return
+        apres_export(self, chemin)

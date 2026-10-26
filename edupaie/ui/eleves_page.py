@@ -1,15 +1,18 @@
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (QAbstractItemView, QComboBox, QDialog, QHBoxLayout,
                                QHeaderView, QLineEdit, QMessageBox, QPushButton,
                                QTableWidget, QTableWidgetItem, QVBoxLayout,
                                QWidget)
 
+from edupaie.services.export_excel import exporter_eleves
 from edupaie.services.paiement_service import ErreurMetier
 from edupaie.ui.eleve_dialog import EleveDialog
 from edupaie.ui.fiche_eleve_dialog import FicheEleveDialog
 from edupaie.ui.paiement_dialog import PaiementDialog
 from edupaie.ui.style import preparer_table
 from edupaie.ui.widgets import cellule_pastille
+from edupaie.ui.fichiers import apres_export
 
 
 def fcfa(valeur: int) -> str:
@@ -17,11 +20,14 @@ def fcfa(valeur: int) -> str:
 
 
 class ElevesPage(QWidget):
-    def __init__(self, service, paiement_service, auth, frais_service=None, remise_service=None):
+    def __init__(self, service, paiement_service, auth, frais_service=None,
+                 remise_service=None, echeancier_service=None):
         super().__init__()
         self.service = service
         self.frais = frais_service
         self.remises = remise_service
+        self.echeancier = echeancier_service
+        self._situations = []
         self.paiement_service = paiement_service
         self.auth = auth
         self.recherche = QLineEdit()
@@ -49,12 +55,13 @@ class ElevesPage(QWidget):
         supprimer.setObjectName("danger")
         payer = QPushButton("Enregistrer un paiement")
         fiche = QPushButton("Fiche et Historique")
+        excel = QPushButton("Exporter vers Excel")
 
         haut, bas = QHBoxLayout(), QHBoxLayout()
         haut.addWidget(self.recherche, 1)
         haut.addWidget(self.filtre)
         haut.addWidget(self.filtre_statut)
-        for b in (ajouter, modifier, supprimer, payer, fiche):
+        for b in (ajouter, modifier, supprimer, payer, fiche, excel):
             bas.addWidget(b)
 
         # Les boutons interdits au rôle de l'utilisateur connecté sont désactivés
@@ -78,6 +85,7 @@ class ElevesPage(QWidget):
         supprimer.clicked.connect(self._supprimer)
         payer.clicked.connect(self._payer)
         fiche.clicked.connect(self._fiche)
+        excel.clicked.connect(self._exporter_excel)
         self.table.cellDoubleClicked.connect(lambda *_: self._fiche())
         self._remplir_classes()
         self.recharger()
@@ -104,6 +112,7 @@ class ElevesPage(QWidget):
         situations = self.paiement_service.situations(
             self.recherche.text().strip(), self.filtre.currentData(),
             self.filtre_statut.currentData())
+        self._situations = situations
         self.table.setRowCount(len(situations))
         for ligne, (e, s) in enumerate(situations):
             valeurs = [e.nom, e.prenom, e.classe, e.annee_scolaire,
@@ -172,5 +181,17 @@ class ElevesPage(QWidget):
         if not eleve:
             return
         FicheEleveDialog(self.paiement_service, eleve, self,
-                         remise_service=self.remises).exec()
+                         remise_service=self.remises,
+                         echeancier_service=self.echeancier).exec()
         self.recharger()
+
+    def _exporter_excel(self):
+        if not self._situations:
+            QMessageBox.information(self, "Export", "Aucun élève à exporter.")
+            return
+        try:
+            chemin = exporter_eleves(self._situations, "exports")
+        except OSError as e:
+            QMessageBox.warning(self, "Export impossible", str(e))
+            return
+        apres_export(self, chemin)
