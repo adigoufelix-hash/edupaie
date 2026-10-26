@@ -7,3 +7,5 @@ livraison/
 data/edupaie.db
 *.zip
 clotures/
+exports/
+impayes/sauvegardes/
