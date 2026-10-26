@@ -60,7 +60,7 @@ class EcheancierDialog(QDialog):
         super().__init__(parent)
         self.service, self.classe, self.annee = service, classe, annee
         self.setWindowTitle(f"Échéancier - {classe} ({annee})")
-        self.resize(660, 440)
+        self.resize(800, 440)
 
         aide = QLabel(
             "Chaque tranche est une part du total de l'élève (remises déduites). "

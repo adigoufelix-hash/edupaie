@@ -2,6 +2,8 @@ import os
 import signal
 import sys
 
+from edupaie.ui.animations import FonduDialogues
+from edupaie.ui.boutons import ProtegeBoutons
 from edupaie.repositories.contact_repository import ContactRepository
 from edupaie.repositories.echeance_repository import EcheanceRepository
 from edupaie.services.echeancier_service import EcheancierService
@@ -50,6 +52,10 @@ def main():
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     app.setStyle("Fusion")
     app.setStyleSheet(STYLE)
+    protege_boutons = ProtegeBoutons(app)
+    fondu = FonduDialogues(app)
+    app.installEventFilter(fondu)
+    app.installEventFilter(protege_boutons)
     conn = get_connection()
     eleves = EleveRepository(conn)
     paiements = PaiementRepository(conn)

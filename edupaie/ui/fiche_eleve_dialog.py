@@ -86,11 +86,14 @@ class FicheEleveDialog(QDialog):
             contact.setToolTip("Non autorisé pour votre rôle")
         contact.clicked.connect(self._contact)
 
-        boutons = QHBoxLayout()
-        for bouton in (payer, voir, annuler, remise, annuler_remise, contact):
-            boutons.addWidget(bouton)
-        boutons.addStretch()
-        boutons.addWidget(fermer)
+        ligne_paiement, ligne_remise = QHBoxLayout(), QHBoxLayout()
+        for bouton in (payer, voir, annuler):
+            ligne_paiement.addWidget(bouton)
+        ligne_paiement.addStretch()
+        for bouton in (remise, annuler_remise, contact):
+            ligne_remise.addWidget(bouton)
+        ligne_remise.addStretch()
+        ligne_remise.addWidget(fermer)
 
         mise_en_page = QVBoxLayout(self)
         mise_en_page.addWidget(self.entete)
@@ -100,7 +103,8 @@ class FicheEleveDialog(QDialog):
         mise_en_page.addWidget(self.vide)
         mise_en_page.addWidget(self.titre_remises)
         mise_en_page.addWidget(self.table_remises)
-        mise_en_page.addLayout(boutons)
+        mise_en_page.addLayout(ligne_paiement)
+        mise_en_page.addLayout(ligne_remise)
 
         if self.remises is None:  # écran lancé sans le service des remises
             for widget in (self.titre_remises, self.table_remises,

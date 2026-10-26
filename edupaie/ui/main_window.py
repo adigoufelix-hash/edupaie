@@ -10,6 +10,7 @@ from edupaie.ui.impayes_page import ImpayesPage
 from edupaie.ui.mot_de_passe_dialog import MotDePasseDialog
 from edupaie.ui.sauvegardes_page import SauvegardesPage
 from edupaie.ui.utilisateurs_page import UtilisateursPage
+from edupaie.ui.animations import fondu_page
 
 
 class MainWindow(QMainWindow):
@@ -38,7 +39,7 @@ class MainWindow(QMainWindow):
             self._ajouter_page("Utilisateurs", UtilisateursPage(auth))
         if sauvegarde_service is not None and auth.peut("sauvegarde.gerer"):
             self._ajouter_page("Sauvegardes", SauvegardesPage(sauvegarde_service))
-        self.menu.currentRowChanged.connect(self.pages.setCurrentIndex)
+        self.menu.currentRowChanged.connect(self._changer_page)
         self.menu.setCurrentRow(0)
 
         marque = QLabel("EduPaie")
@@ -54,7 +55,7 @@ class MainWindow(QMainWindow):
 
         cote = QWidget()
         cote.setObjectName("cote")
-        cote.setFixedWidth(190)
+        cote.setFixedWidth(230)
         colonne = QVBoxLayout(cote)
         colonne.setContentsMargins(0, 0, 0, 0)
         colonne.setSpacing(0)
@@ -75,6 +76,10 @@ class MainWindow(QMainWindow):
     def _ajouter_page(self, titre, widget):
         self.menu.addItem(titre)
         self.pages.addWidget(widget)
+    
+    def _changer_page(self, index):
+        self.pages.setCurrentIndex(index)
+        fondu_page(self.pages.currentWidget())
 
     def deconnecter(self):
         """Ferme la session : main.py réaffiche alors l'écran de connexion."""
