@@ -2,7 +2,8 @@ from datetime import datetime
 from pathlib import Path
 
 from fpdf import FPDF
-
+from edupaie.services.ecole import courant
+from edupaie.services.pdf_commun import adapter, dessiner_logo
 from edupaie.services.recu_pdf import (BLANC, BORDURE, CLAIR, GRIS, INDIGO,
                                        LAVANDE, MARINE, MODES, _date_fr, _montant)
 
@@ -26,9 +27,10 @@ def _periode(debut, fin) -> str:
 
 
 class _PDF(FPDF):
-    def __init__(self, periode):
+    def __init__(self, periode, ecole):
         super().__init__(unit="mm", format="A4")
         self.periode = periode
+        self.ecole = ecole
         self.set_margins(12, 12, 12)
         self.set_auto_page_break(auto=True, margin=18)
         self.alias_nb_pages()
@@ -36,10 +38,12 @@ class _PDF(FPDF):
     def header(self):
         self.set_fill_color(*MARINE)
         self.rect(0, 0, 210, 22, style="F")
+        x_texte = 32 if dessiner_logo(self, self.ecole.logo, 12, 3, 16) else 12
+        nom, taille = adapter(self, self.ecole.nom_affiche, 88 - x_texte, 16, 8)
         self.set_text_color(*BLANC)
-        self.set_xy(12, 6)
-        self.set_font("Helvetica", "B", 16)
-        self.cell(70, 8, "EduPaie")
+        self.set_xy(x_texte, 6)
+        self.set_font("Helvetica", "B", taille)
+        self.cell(88 - x_texte, 8, nom)
         self.set_xy(90, 5)
         self.set_font("Helvetica", "B", 11)
         self.cell(108, 6, _l1("CLÔTURE DE CAISSE"), align="R")
@@ -99,9 +103,9 @@ def _table_paiements(pdf, paiements, couleur=MARINE):
         _ligne(pdf, valeurs, LARGEURS, ALIGNS, couleur=couleur)
 
 
-def generer_cloture_pdf(cloture: dict, dossier) -> Path:
+def generer_cloture_pdf(cloture: dict, dossier, ecole=None) -> Path:
     """Génère le PDF de clôture à partir du résultat de CaisseService.cloture()."""
-    pdf = _PDF(_periode(cloture["debut"], cloture["fin"]))
+    pdf = _PDF(_periode(cloture["debut"], cloture["fin"]), ecole or courant())
     pdf.add_page()
 
     # Informations générales

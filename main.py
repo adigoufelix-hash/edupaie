@@ -2,6 +2,9 @@ import os
 import signal
 import sys
 
+from edupaie.repositories.ecole_repository import EcoleRepository
+from edupaie.services.ecole import definir
+from edupaie.services.ecole_service import EcoleService
 from edupaie.ui.animations import FonduDialogues
 from edupaie.ui.boutons import ProtegeBoutons
 from edupaie.repositories.contact_repository import ContactRepository
@@ -68,6 +71,8 @@ def main():
     echeancier = EcheancierService(
         EcheanceRepository(conn), eleves, paiements, ContactRepository(conn), auth)
     sauvegarder_sans_bloquer(sauvegarde)  # au lancement
+    ecole = EcoleService(EcoleRepository(conn), auth)
+    definir(ecole.lire())
 
     # Connexion obligatoire, répétée après chaque déconnexion ou verrouillage
     while True:
@@ -87,6 +92,7 @@ def main():
             caisse,
             remises,
             echeancier,
+            ecole,
         )
         fenetre.resize(1180, 720)
         fenetre.showMaximized()

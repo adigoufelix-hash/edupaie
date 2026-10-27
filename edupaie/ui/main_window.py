@@ -2,24 +2,28 @@ from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QListWidget,
                                QMainWindow, QPushButton, QStackedWidget,
                                QVBoxLayout, QWidget)
 
+from edupaie.services.ecole import courant
+from edupaie.ui.animations import fondu_page
 from edupaie.ui.caisse_page import CaissePage
 from edupaie.ui.dashboard_page import DashboardPage
+from edupaie.ui.ecole_page import EcolePage
 from edupaie.ui.eleves_page import ElevesPage
 from edupaie.ui.frais_page import FraisPage
 from edupaie.ui.impayes_page import ImpayesPage
 from edupaie.ui.mot_de_passe_dialog import MotDePasseDialog
 from edupaie.ui.sauvegardes_page import SauvegardesPage
 from edupaie.ui.utilisateurs_page import UtilisateursPage
-from edupaie.ui.animations import fondu_page
 
 
 class MainWindow(QMainWindow):
     def __init__(self, eleve_service, paiement_service, auth,
                  frais_service=None, sauvegarde_service=None, caisse_service=None,
-                 remise_service=None, echeancier_service=None):
+                 remise_service=None, echeancier_service=None, ecole_service=None):
         super().__init__()
         self.deconnexion = False  # True si on se déconnecte ou se verrouille
-        self.setWindowTitle("EduPaie - Gestion des paiements scolaires")
+        nom_ecole = courant().nom
+        self.setWindowTitle(f"{nom_ecole} - EduPaie" if nom_ecole
+                            else "EduPaie - Gestion des paiements scolaires")
 
         self.menu = QListWidget()
         self.menu.setObjectName("menu")
@@ -39,6 +43,8 @@ class MainWindow(QMainWindow):
             self._ajouter_page("Utilisateurs", UtilisateursPage(auth))
         if sauvegarde_service is not None and auth.peut("sauvegarde.gerer"):
             self._ajouter_page("Sauvegardes", SauvegardesPage(sauvegarde_service))
+        if ecole_service is not None and auth.peut("ecole.gerer"):
+            self._ajouter_page("Paramètres", EcolePage(ecole_service))
         self.menu.currentRowChanged.connect(self._changer_page)
         self.menu.setCurrentRow(0)
 
@@ -76,7 +82,7 @@ class MainWindow(QMainWindow):
     def _ajouter_page(self, titre, widget):
         self.menu.addItem(titre)
         self.pages.addWidget(widget)
-    
+
     def _changer_page(self, index):
         self.pages.setCurrentIndex(index)
         fondu_page(self.pages.currentWidget())

@@ -79,3 +79,12 @@ CREATE TABLE IF NOT EXISTS contact_eleve (
     tuteur    TEXT,
     telephone TEXT
 );
+
+CREATE TABLE IF NOT EXISTS ecole (
+    id        INTEGER PRIMARY KEY CHECK (id = 1),
+    nom       TEXT NOT NULL,
+    adresse   TEXT,
+    telephone TEXT,
+    email     TEXT,
+    logo      BLOB
+);

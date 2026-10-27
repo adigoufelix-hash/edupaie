@@ -1,6 +1,8 @@
 from pathlib import Path
 
 from fpdf import FPDF
+from edupaie.services.ecole import courant
+from edupaie.services.pdf_commun import adapter, dessiner_logo
 
 MODES = {
     "especes": "Espèces",
@@ -43,20 +45,26 @@ def _arrondi(pdf, x, y, largeur, hauteur, rayon, style):
              round_corners=True, corner_radius=rayon)
 
 
-def generer_recu_pdf(eleve, paiement, dossier) -> Path:
+def generer_recu_pdf(eleve, paiement, dossier, ecole=None) -> Path:
     """Génère le reçu PDF à partir des seules données enregistrées."""
     pdf = FPDF(unit="mm", format=(148, 210))
     pdf.set_auto_page_break(False)
     pdf.add_page()
 
-    # Bandeau d'en-tête
+    # Bandeau d'en-tête : logo, nom et coordonnées de l'école
+    ecole = ecole or courant()
     pdf.set_fill_color(*MARINE)
     pdf.rect(0, 0, 148, 42, style="F")
-    _texte(pdf, 12, 9, 70, 10, "EduPaie", 22, True, BLANC)
-    _texte(pdf, 12, 20, 70, 5, "Gestion des paiements scolaires", 9, False, LAVANDE)
-    _texte(pdf, 12, 31, 70, 6, "REÇU DE PAIEMENT", 11, True, BLANC)
-    _texte(pdf, 70, 10, 66, 5, "N° DE REÇU", 8, False, LAVANDE, "R")
-    _texte(pdf, 70, 16, 66, 8, paiement.numero_recu, 13, True, BLANC, "R")
+    x_texte = 38 if dessiner_logo(pdf, ecole.logo, 12, 6, 22) else 12
+    nom, taille = adapter(pdf, ecole.nom_affiche, 136 - x_texte, 20, 9)
+    _texte(pdf, x_texte, 7, 136 - x_texte, 9, nom, taille, True, BLANC)
+    coordonnees, taille = adapter(
+        pdf, ecole.coordonnees or "Gestion des paiements scolaires",
+        136 - x_texte, 9, 6, style="")
+    _texte(pdf, x_texte, 18, 136 - x_texte, 5, coordonnees, taille, False, LAVANDE)
+    _texte(pdf, 12, 33, 70, 6, "REÇU DE PAIEMENT", 11, True, BLANC)
+    _texte(pdf, 80, 29, 56, 4, "N° DE REÇU", 7, False, LAVANDE, "R")
+    _texte(pdf, 80, 33, 56, 7, paiement.numero_recu, 12, True, BLANC, "R")
 
     # Bloc élève
     pdf.set_draw_color(*BORDURE)
