@@ -13,6 +13,7 @@ from edupaie.ui.style import preparer_table
 from edupaie.ui.fichiers import apres_export
 
 
+
 def _date_fr(iso: str) -> str:
     annee, mois, jour = iso.split("-")
     return f"{jour}/{mois}/{annee}"
