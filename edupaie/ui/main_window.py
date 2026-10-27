@@ -18,7 +18,7 @@ from edupaie.ui.utilisateurs_page import UtilisateursPage
 class MainWindow(QMainWindow):
     def __init__(self, eleve_service, paiement_service, auth,
                  frais_service=None, sauvegarde_service=None, caisse_service=None,
-                 remise_service=None, echeancier_service=None, ecole_service=None):
+                 remise_service=None, echeancier_service=None, ecole_service=None, import_service=None):
         super().__init__()
         self.deconnexion = False  # True si on se déconnecte ou se verrouille
         nom_ecole = courant().nom
@@ -30,7 +30,7 @@ class MainWindow(QMainWindow):
         self.pages = QStackedWidget()
         self._ajouter_page("Élèves", ElevesPage(
             eleve_service, paiement_service, auth, frais_service,
-            remise_service, echeancier_service))
+            remise_service, echeancier_service, import_service))
         self._ajouter_page("Tableau de bord", DashboardPage(paiement_service))
         if echeancier_service is not None and auth.peut("impayes.voir"):
             self._ajouter_page("Impayés", ImpayesPage(echeancier_service))

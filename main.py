@@ -2,6 +2,8 @@ import os
 import signal
 import sys
 
+from edupaie.repositories.import_repository import ImportRepository
+from edupaie.services.import_service import ImportEleveService
 from edupaie.repositories.ecole_repository import EcoleRepository
 from edupaie.services.ecole import definir
 from edupaie.services.ecole_service import EcoleService
@@ -73,6 +75,7 @@ def main():
     sauvegarder_sans_bloquer(sauvegarde)  # au lancement
     ecole = EcoleService(EcoleRepository(conn), auth)
     definir(ecole.lire())
+    importation = ImportEleveService(ImportRepository(conn), eleves, frais, auth, sauvegarde)
 
     # Connexion obligatoire, répétée après chaque déconnexion ou verrouillage
     while True:
@@ -93,6 +96,7 @@ def main():
             remises,
             echeancier,
             ecole,
+            importation,
         )
         fenetre.resize(1180, 720)
         fenetre.showMaximized()

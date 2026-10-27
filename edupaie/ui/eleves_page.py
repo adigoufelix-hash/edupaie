@@ -9,10 +9,11 @@ from edupaie.services.export_excel import exporter_eleves
 from edupaie.services.paiement_service import ErreurMetier
 from edupaie.ui.eleve_dialog import EleveDialog
 from edupaie.ui.fiche_eleve_dialog import FicheEleveDialog
+from edupaie.ui.fichiers import apres_export
+from edupaie.ui.import_dialog import ImportDialog
 from edupaie.ui.paiement_dialog import PaiementDialog
 from edupaie.ui.style import preparer_table
 from edupaie.ui.widgets import cellule_pastille
-from edupaie.ui.fichiers import apres_export
 
 
 def fcfa(valeur: int) -> str:
@@ -21,12 +22,13 @@ def fcfa(valeur: int) -> str:
 
 class ElevesPage(QWidget):
     def __init__(self, service, paiement_service, auth, frais_service=None,
-                 remise_service=None, echeancier_service=None):
+                 remise_service=None, echeancier_service=None, import_service=None):
         super().__init__()
         self.service = service
         self.frais = frais_service
         self.remises = remise_service
         self.echeancier = echeancier_service
+        self.import_service = import_service
         self._situations = []
         self.paiement_service = paiement_service
         self.auth = auth
@@ -56,17 +58,21 @@ class ElevesPage(QWidget):
         payer = QPushButton("Enregistrer un paiement")
         fiche = QPushButton("Fiche et Historique")
         excel = QPushButton("Exporter vers Excel")
+        importer = QPushButton("Importer depuis Excel")
+        if import_service is None:
+            importer.hide()
 
         haut, bas = QHBoxLayout(), QHBoxLayout()
         haut.addWidget(self.recherche, 1)
         haut.addWidget(self.filtre)
         haut.addWidget(self.filtre_statut)
-        for b in (ajouter, modifier, supprimer, payer, fiche, excel):
+        for b in (ajouter, modifier, supprimer, payer, fiche, excel, importer):
             bas.addWidget(b)
 
         # Les boutons interdits au rôle de l'utilisateur connecté sont désactivés
         droits = ((ajouter, "eleve.ecrire"), (modifier, "eleve.ecrire"),
-                  (supprimer, "eleve.supprimer"), (payer, "paiement.encaisser"))
+                  (supprimer, "eleve.supprimer"), (payer, "paiement.encaisser"),
+                  (importer, "eleve.importer"))
         for bouton, permission in droits:
             if not self.auth.peut(permission):
                 bouton.setEnabled(False)
@@ -86,6 +92,7 @@ class ElevesPage(QWidget):
         payer.clicked.connect(self._payer)
         fiche.clicked.connect(self._fiche)
         excel.clicked.connect(self._exporter_excel)
+        importer.clicked.connect(self._importer)
         self.table.cellDoubleClicked.connect(lambda *_: self._fiche())
         self._remplir_classes()
         self.recharger()
@@ -195,3 +202,10 @@ class ElevesPage(QWidget):
             QMessageBox.warning(self, "Export impossible", str(e))
             return
         apres_export(self, chemin)
+
+    def _importer(self):
+        if not self._autorise("eleve.importer"):
+            return
+        if ImportDialog(self.import_service, self).exec() == QDialog.Accepted:
+            self._remplir_classes()
+            self.recharger()

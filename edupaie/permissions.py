@@ -6,7 +6,7 @@ LECTURE = "lecture"
 
 PERMISSIONS = {
     ADMIN: {
-        "eleve.lire", "eleve.ecrire", "eleve.supprimer",
+        "eleve.lire", "eleve.ecrire", "eleve.supprimer", "eleve.importer",
         "paiement.lire", "paiement.encaisser", "paiement.annuler",
         "recu.imprimer", "dashboard.voir",
         "utilisateur.gerer", "frais.gerer", "sauvegarde.gerer",
