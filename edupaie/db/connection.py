@@ -21,21 +21,29 @@ def _chemin_schema() -> Path:
 DB_PATH = dossier_donnees() / "data" / "edupaie.db"
 
 # Colonnes ajoutées après la première version : ajoutées aux bases existantes.
-COLONNES_PAIEMENT = {
-    "utilisateur_id": "INTEGER REFERENCES utilisateur(id) ON DELETE SET NULL",
-    "encaisse_par": "TEXT",
-    "annule": "INTEGER NOT NULL DEFAULT 0",
-    "motif_annulation": "TEXT",
-    "annule_par": "TEXT",
-    "annule_le": "TEXT",
+MIGRATIONS = {
+    "paiement": {
+        "utilisateur_id": "INTEGER REFERENCES utilisateur(id) ON DELETE SET NULL",
+        "encaisse_par": "TEXT",
+        "annule": "INTEGER NOT NULL DEFAULT 0",
+        "motif_annulation": "TEXT",
+        "annule_par": "TEXT",
+        "annule_le": "TEXT",
+    },
+    "ecole": {
+        "couleur": "TEXT",
+    },
 }
 
 
 def _migrer(conn: sqlite3.Connection) -> None:
-    existantes = {r[1] for r in conn.execute("PRAGMA table_info(paiement)")}
-    for nom, definition in COLONNES_PAIEMENT.items():
-        if nom not in existantes:
-            conn.execute(f"ALTER TABLE paiement ADD COLUMN {nom} {definition}")
+    for table, colonnes in MIGRATIONS.items():
+        existantes = {r[1] for r in conn.execute(f"PRAGMA table_info({table})")}
+        if not existantes:
+            continue
+        for nom, definition in colonnes.items():
+            if nom not in existantes:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {nom} {definition}")
     conn.commit()
 
 

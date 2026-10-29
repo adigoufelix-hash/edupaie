@@ -2,6 +2,10 @@ import os
 import signal
 import sys
 
+from edupaie.repositories.classe_repository import ClasseRepository
+from edupaie.services.classe_service import ClasseService
+from edupaie.services.ecole import courant, definir
+from edupaie.ui.theme import style_pour
 from edupaie.repositories.import_repository import ImportRepository
 from edupaie.services.import_service import ImportEleveService
 from edupaie.repositories.ecole_repository import EcoleRepository
@@ -75,6 +79,8 @@ def main():
     sauvegarder_sans_bloquer(sauvegarde)  # au lancement
     ecole = EcoleService(EcoleRepository(conn), auth)
     definir(ecole.lire())
+    app.setStyleSheet(style_pour(courant().couleur))
+    gestion_classes = ClasseService(ClasseRepository(conn), auth)
     importation = ImportEleveService(ImportRepository(conn), eleves, frais, auth, sauvegarde)
 
     # Connexion obligatoire, répétée après chaque déconnexion ou verrouillage
@@ -97,6 +103,7 @@ def main():
             echeancier,
             ecole,
             importation,
+            gestion_classes
         )
         fenetre.resize(1180, 720)
         fenetre.showMaximized()

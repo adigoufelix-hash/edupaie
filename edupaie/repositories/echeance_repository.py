@@ -1,11 +1,16 @@
 import sqlite3
 
+from edupaie.repositories.classe_repository import lister_noms
+
 
 class EcheanceRepository:
     """Accès aux données de la table echeance. Aucune règle métier ici."""
 
     def __init__(self, conn: sqlite3.Connection):
         self.conn = conn
+
+    def classes(self) -> list[str]:
+        return lister_noms(self.conn)
 
     def lister(self, classe: str, annee: str):
         return self.conn.execute(

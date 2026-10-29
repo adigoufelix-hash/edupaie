@@ -86,5 +86,11 @@ CREATE TABLE IF NOT EXISTS ecole (
     adresse   TEXT,
     telephone TEXT,
     email     TEXT,
-    logo      BLOB
+    logo      BLOB,
+    couleur   TEXT
+);
+CREATE TABLE IF NOT EXISTS classe (
+    id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    nom   TEXT NOT NULL COLLATE NOCASE UNIQUE,
+    ordre INTEGER NOT NULL DEFAULT 0
 );

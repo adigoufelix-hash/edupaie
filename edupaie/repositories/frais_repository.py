@@ -1,5 +1,7 @@
 import sqlite3
 
+from edupaie.repositories.classe_repository import lister_noms
+
 
 class FraisRepository:
     """Accès aux données de la table frais_classe. Aucune règle métier ici."""
@@ -19,10 +21,7 @@ class FraisRepository:
             "WHERE classe = ? AND annee_scolaire = ?", (classe, annee)).fetchone()[0]
 
     def classes(self) -> list[str]:
-        rows = self.conn.execute(
-            "SELECT classe FROM frais_classe UNION SELECT classe FROM eleve ORDER BY 1"
-        ).fetchall()
-        return [r[0] for r in rows]
+        return lister_noms(self.conn)
 
     def ajouter(self, classe: str, annee: str, libelle: str, montant: int) -> int:
         with self.conn:  # commit ou rollback automatique

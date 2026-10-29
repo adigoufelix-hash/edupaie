@@ -78,8 +78,7 @@ class EcheancierService:
 
     # --- Tranches -----------------------------------------------------------------
     def classes(self) -> list[str]:
-        return self.eleves.classes()
-
+        return self.echeances.classes()
     def lister(self, classe: str, annee: str):
         return self.echeances.lister(classe.strip(), annee.strip())
 

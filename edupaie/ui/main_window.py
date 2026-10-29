@@ -2,6 +2,7 @@ from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QListWidget,
                                QMainWindow, QPushButton, QStackedWidget,
                                QVBoxLayout, QWidget)
 
+
 from edupaie.services.ecole import courant
 from edupaie.ui.animations import fondu_page
 from edupaie.ui.caisse_page import CaissePage
@@ -13,12 +14,13 @@ from edupaie.ui.impayes_page import ImpayesPage
 from edupaie.ui.mot_de_passe_dialog import MotDePasseDialog
 from edupaie.ui.sauvegardes_page import SauvegardesPage
 from edupaie.ui.utilisateurs_page import UtilisateursPage
+from edupaie.ui.classes_page import ClassesPage
 
 
 class MainWindow(QMainWindow):
     def __init__(self, eleve_service, paiement_service, auth,
                  frais_service=None, sauvegarde_service=None, caisse_service=None,
-                 remise_service=None, echeancier_service=None, ecole_service=None, import_service=None):
+                 remise_service=None, echeancier_service=None, ecole_service=None, import_service=None, classe_service=None):
         super().__init__()
         self.deconnexion = False  # True si on se déconnecte ou se verrouille
         nom_ecole = courant().nom
@@ -36,6 +38,8 @@ class MainWindow(QMainWindow):
             self._ajouter_page("Impayés", ImpayesPage(echeancier_service))
         if caisse_service is not None and auth.peut("caisse.voir"):
             self._ajouter_page("Clôture de caisse", CaissePage(caisse_service))
+        if classe_service is not None and auth.peut("classe.gerer"):
+            self._ajouter_page("Classes", ClassesPage(classe_service))
         if frais_service is not None and auth.peut("frais.gerer"):
             self._ajouter_page("Classes et frais",
                                FraisPage(frais_service, echeancier_service))

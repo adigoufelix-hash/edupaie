@@ -1,7 +1,8 @@
+from edupaie.services import couleurs
 from edupaie.services.ecole import ParametresEcole, definir
 from edupaie.services.paiement_service import ErreurMetier
 
-GARDER = object()  # « ne pas toucher au logo existant »
+GARDER = object()  # « ne pas toucher à la valeur existante »
 SIGNATURE_PNG = b"\x89PNG\r\n\x1a\n"
 TAILLE_MAX_LOGO = 1_000_000  # octets
 
@@ -20,7 +21,8 @@ class EcoleService:
             return ParametresEcole()
         return ParametresEcole(
             ligne["nom"] or "", ligne["adresse"] or "", ligne["telephone"] or "",
-            ligne["email"] or "", bytes(ligne["logo"]) if ligne["logo"] else None)
+            ligne["email"] or "", bytes(ligne["logo"]) if ligne["logo"] else None,
+            ligne["couleur"] or "")
 
     @staticmethod
     def _texte(valeur, maximum, nom) -> str:
@@ -29,8 +31,10 @@ class EcoleService:
             raise ErreurMetier(f"{nom} : {maximum} caractères au maximum.")
         return valeur
 
-    def enregistrer(self, nom, adresse="", telephone="", email="", logo=GARDER) -> None:
-        """logo : GARDER (inchangé), None (retirer) ou les octets d'une image PNG."""
+    def enregistrer(self, nom, adresse="", telephone="", email="",
+                    logo=GARDER, couleur=GARDER) -> None:
+        """logo : GARDER, None (retirer) ou une image PNG.
+        couleur : GARDER, "" (couleur d'origine) ou un code #RRGGBB."""
         if not self.peut_modifier():
             raise ErreurMetier(
                 "Seul un administrateur peut modifier les paramètres de l'école.")
@@ -42,8 +46,8 @@ class EcoleService:
         email = self._texte(email, 80, "L'e-mail")
         if email and "@" not in email:
             raise ErreurMetier("L'adresse e-mail n'est pas valide.")
+        actuel = self.repo.lire()
         if logo is GARDER:
-            actuel = self.repo.lire()
             logo = bytes(actuel["logo"]) if actuel and actuel["logo"] else None
         elif logo is not None:
             if not isinstance(logo, (bytes, bytearray)) or not bytes(logo).startswith(SIGNATURE_PNG):
@@ -51,5 +55,14 @@ class EcoleService:
             if len(logo) > TAILLE_MAX_LOGO:
                 raise ErreurMetier("Le logo est trop volumineux (1 Mo au maximum).")
             logo = bytes(logo)
-        self.repo.enregistrer(nom, adresse, telephone, email, logo)
+        if couleur is GARDER:
+            couleur = (actuel["couleur"] or "") if actuel else ""
+        else:
+            couleur = str(couleur or "").strip()
+            if couleur:
+                couleur = couleurs.normaliser(couleur)
+                if couleur is None:
+                    raise ErreurMetier(
+                        "Couleur invalide : utilise le format #RRGGBB (ex. #0F766E).")
+        self.repo.enregistrer(nom, adresse, telephone, email, logo, couleur)
         definir(self.lire())  # les PDF suivants utilisent aussitôt les nouvelles valeurs

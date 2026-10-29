@@ -112,6 +112,11 @@ class FraisPage(QWidget):
             return
         EcheancierDialog(self.echeancier, self._classe(), self._annee(), self).exec()
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        self._remplir_classes(garder=self._classe())
+        self.recharger()
+
     def _classe(self) -> str:
         return self.classe.currentText().strip()
 
