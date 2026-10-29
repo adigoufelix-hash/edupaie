@@ -94,3 +94,33 @@ CREATE TABLE IF NOT EXISTS classe (
     nom   TEXT NOT NULL COLLATE NOCASE UNIQUE,
     ordre INTEGER NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS parametre (
+    cle    TEXT PRIMARY KEY,
+    valeur TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS audit (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    date_heure     TEXT    NOT NULL,
+    utilisateur_id INTEGER,
+    utilisateur    TEXT,
+    action         TEXT    NOT NULL,
+    objet          TEXT,
+    objet_id       INTEGER,
+    detail         TEXT    NOT NULL DEFAULT '',
+    hash           TEXT    NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_date ON audit(date_heure);
+
+CREATE TRIGGER IF NOT EXISTS audit_pas_de_modification
+BEFORE UPDATE ON audit
+BEGIN
+    SELECT RAISE(ABORT, 'Le journal d''audit ne peut pas être modifié.');
+END;
+
+CREATE TRIGGER IF NOT EXISTS audit_pas_de_suppression
+BEFORE DELETE ON audit
+BEGIN
+    SELECT RAISE(ABORT, 'Le journal d''audit ne peut pas être supprimé.');
+END;

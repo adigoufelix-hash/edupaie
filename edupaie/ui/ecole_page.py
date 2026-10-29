@@ -211,7 +211,7 @@ class EcolePage(QWidget):
             self._couleur)
         eleve = Eleve(None, "Kouassi", "Kofi", "6e A", "2026-2027", 100000)
         paiement = Paiement(
-            id=1, eleve_id=1, numero_recu="APERCU-0001", montant=40000,
+            id=1, eleve_id=1, numero_recu="REC-0000-000000", montant=40000,
             date_paiement="2026-10-26", mode="especes", solde_apres=60000,
             encaisse_par="Exemple")
         try:

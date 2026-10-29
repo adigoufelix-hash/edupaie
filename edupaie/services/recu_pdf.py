@@ -2,7 +2,9 @@ from pathlib import Path
 
 from fpdf import FPDF
 from edupaie.services.ecole import courant
-from edupaie.services.pdf_commun import adapter, dessiner_logo
+
+from edupaie.services import verification
+from edupaie.services.pdf_commun import adapter, dessiner_logo, dessiner_qr
 
 MODES = {
     "especes": "Espèces",
@@ -111,29 +113,29 @@ def generer_recu_pdf(eleve, paiement, dossier, ecole=None) -> Path:
         fond, encre, etiquette = FOND_VERT, VERT, "SOLDÉ"
     else:
         fond, encre, etiquette = FOND_ORANGE, ORANGE, "PAIEMENT PARTIEL"
+    pdf.set_fill_color(*fond)
+    _arrondi(pdf, 44, 182, 60, 9, 4.5, "F")
+    _texte(pdf, 44, 184, 60, 5, etiquette, 9, True, encre, "C")
 
-    _texte(pdf, 12, 197, 124, 5,
-          "Merci de conserver ce reçu. Il fait foi du paiement.",
-           8, False, GRIS, "C")
-    
+    # QR code et code de contrôle (vérifiables dans l'écran « Vérifier un reçu »)
+    contenu = verification.contenu_qr(paiement)
+    if contenu and dessiner_qr(pdf, contenu, 12, 178, 24):
+        _texte(pdf, 8, 202.5, 32, 4, verification.code_affiche(paiement), 6, False, GRIS, "C")
+
     if paiement.encaisse_par:
-        # Helvetica ne gère que le latin-1 : on évite un plantage sur un nom exotique
-        nom = paiement.encaisse_par.encode("latin-1", "replace").decode("latin-1")
-        _texte(pdf, 12, 193, 124, 5, f"Encaissé par : {nom}", 8, False, GRIS, "C")
+        texte, taille = adapter(pdf, f"Encaissé par : {paiement.encaisse_par}", 96, 8, 6,
+                                style="")
+        _texte(pdf, 40, 193, 96, 5, texte, taille, False, GRIS, "C")
 
     if paiement.annule:
-        motif = (paiement.motif_annulation or "").encode(
-            "latin-1", "replace").decode("latin-1")
-        if len(motif) > 55:
-            motif = motif[:52] + "..."
         quand = _date_fr(paiement.annule_le[:10]) if paiement.annule_le else ""
-        _texte(pdf, 12, 200, 124, 5, f"Annulé le {quand} : {motif}",
-               8, True, ROUGE, "C")
+        texte, taille = adapter(
+            pdf, f"Annulé le {quand} : {paiement.motif_annulation or ''}", 96, 8, 6)
+        _texte(pdf, 40, 200, 96, 5, texte, taille, True, ROUGE, "C")
     else:
-        _texte(pdf, 12, 200, 124, 5,
-               "Merci de conserver ce reçu. Il fait foi du paiement.",
-               8, False, GRIS, "C")
-        
+        _texte(pdf, 40, 200, 96, 5,
+               "Merci de conserver ce reçu. Il fait foi du paiement.", 8, False, GRIS, "C")
+
     dossier = Path(dossier)
     dossier.mkdir(parents=True, exist_ok=True)
     chemin = dossier / f"{paiement.numero_recu}.pdf"

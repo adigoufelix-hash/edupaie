@@ -11,7 +11,7 @@ PERMISSIONS = {
         "recu.imprimer", "dashboard.voir",
         "utilisateur.gerer", "frais.gerer", "sauvegarde.gerer",
         "caisse.voir", "caisse.toutes", "remise.gerer", "impayes.voir",
-        "ecole.gerer", "classe.gerer",
+        "ecole.gerer", "classe.gerer", "audit.voir",
     },
     COMPTABLE: {
         "eleve.lire", "eleve.ecrire",

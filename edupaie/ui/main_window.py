@@ -2,25 +2,28 @@ from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QListWidget,
                                QMainWindow, QPushButton, QStackedWidget,
                                QVBoxLayout, QWidget)
 
-
 from edupaie.services.ecole import courant
 from edupaie.ui.animations import fondu_page
 from edupaie.ui.caisse_page import CaissePage
+from edupaie.ui.classes_page import ClassesPage
 from edupaie.ui.dashboard_page import DashboardPage
 from edupaie.ui.ecole_page import EcolePage
 from edupaie.ui.eleves_page import ElevesPage
 from edupaie.ui.frais_page import FraisPage
 from edupaie.ui.impayes_page import ImpayesPage
+from edupaie.ui.journal_page import JournalPage
 from edupaie.ui.mot_de_passe_dialog import MotDePasseDialog
 from edupaie.ui.sauvegardes_page import SauvegardesPage
 from edupaie.ui.utilisateurs_page import UtilisateursPage
-from edupaie.ui.classes_page import ClassesPage
+from edupaie.ui.verification_page import VerificationPage
 
 
 class MainWindow(QMainWindow):
     def __init__(self, eleve_service, paiement_service, auth,
                  frais_service=None, sauvegarde_service=None, caisse_service=None,
-                 remise_service=None, echeancier_service=None, ecole_service=None, import_service=None, classe_service=None):
+                 remise_service=None, echeancier_service=None, ecole_service=None,
+                 import_service=None, classe_service=None, journal_service=None,
+                 verification_service=None):
         super().__init__()
         self.deconnexion = False  # True si on se déconnecte ou se verrouille
         nom_ecole = courant().nom
@@ -34,6 +37,8 @@ class MainWindow(QMainWindow):
             eleve_service, paiement_service, auth, frais_service,
             remise_service, echeancier_service, import_service))
         self._ajouter_page("Tableau de bord", DashboardPage(paiement_service))
+        if verification_service is not None and auth.peut("paiement.lire"):
+            self._ajouter_page("Vérifier un reçu", VerificationPage(verification_service))
         if echeancier_service is not None and auth.peut("impayes.voir"):
             self._ajouter_page("Impayés", ImpayesPage(echeancier_service))
         if caisse_service is not None and auth.peut("caisse.voir"):
@@ -45,6 +50,8 @@ class MainWindow(QMainWindow):
                                FraisPage(frais_service, echeancier_service))
         if auth.peut("utilisateur.gerer"):
             self._ajouter_page("Utilisateurs", UtilisateursPage(auth))
+        if journal_service is not None and auth.peut("audit.voir"):
+            self._ajouter_page("Journal d'audit", JournalPage(journal_service))
         if sauvegarde_service is not None and auth.peut("sauvegarde.gerer"):
             self._ajouter_page("Sauvegardes", SauvegardesPage(sauvegarde_service))
         if ecole_service is not None and auth.peut("ecole.gerer"):

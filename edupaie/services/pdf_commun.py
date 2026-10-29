@@ -46,3 +46,24 @@ def dessiner_logo(pdf, logo, x, y, cote) -> bool:
     except Exception:
         return False
     return True
+
+
+def dessiner_qr(pdf, contenu, x, y, cote) -> bool:
+    """Dessine un QR code dans un carré blanc de `cote` mm. False si impossible."""
+    try:
+        import segno
+        matrice = segno.make(contenu, error="m", micro=False).matrix
+    except Exception:
+        return False
+    taille = len(matrice)
+    marge = 2  # zone calme, en modules
+    module = cote / (taille + 2 * marge)
+    pdf.set_fill_color(255, 255, 255)
+    pdf.rect(x, y, cote, cote, style="F")
+    pdf.set_fill_color(0, 0, 0)
+    for j, ligne in enumerate(matrice):
+        for i, sombre in enumerate(ligne):
+            if sombre:  # léger recouvrement pour éviter les fines lignes blanches
+                pdf.rect(x + (i + marge) * module, y + (j + marge) * module,
+                         module + 0.02, module + 0.02, style="F")
+    return True
