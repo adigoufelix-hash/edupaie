@@ -1,8 +1,9 @@
-from PySide6.QtWidgets import (
-    QDialog, QFormLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout,
-)
+from PySide6.QtWidgets import (QDialog, QFormLayout, QLabel, QLineEdit, QPushButton,
+                               QVBoxLayout)
 
 from edupaie.services.paiement_service import ErreurMetier
+from edupaie.ui.recuperation_dialogs import (ChangementObligatoireDialog,
+                                             CodesSecoursDialog, RecuperationDialog)
 
 
 class LoginDialog(QDialog):
@@ -38,6 +39,10 @@ class LoginDialog(QDialog):
         self.erreur.setWordWrap(True)
         self.erreur.setStyleSheet("color: #c0392b;")
 
+        self.oublie = QLabel("<a href='#'>Mot de passe oublié ?</a>")
+        self.oublie.linkActivated.connect(self._oublie)
+        self.oublie.setVisible(not self.premier_lancement)
+
         self.bouton = QPushButton(
             "Créer le compte" if self.premier_lancement else "Se connecter"
         )
@@ -56,6 +61,7 @@ class LoginDialog(QDialog):
         layout.addWidget(titre)
         layout.addLayout(form)
         layout.addWidget(self.erreur)
+        layout.addWidget(self.oublie)
         layout.addWidget(self.bouton)
 
     def _valider(self):
@@ -65,6 +71,9 @@ class LoginDialog(QDialog):
         else:
             self._connecter()
 
+    def _nouveau_mot_de_passe(self) -> bool:
+        return ChangementObligatoireDialog(self.auth, self).exec() == QDialog.Accepted
+
     def _connecter(self):
         try:
             utilisateur = self.auth.authentifier(self.login.text(), self.mdp.text())
@@ -72,6 +81,12 @@ class LoginDialog(QDialog):
             self.erreur.setText(str(e))
             return
         if utilisateur:
+            if utilisateur.get("doit_changer_mdp") and not self._nouveau_mot_de_passe():
+                self.auth.deconnecter()
+                self.mdp.clear()
+                self.erreur.setText(
+                    "Tu dois choisir un nouveau mot de passe pour te connecter.")
+                return
             self.accept()
             return
         self.essais += 1
@@ -97,4 +112,19 @@ class LoginDialog(QDialog):
             self.erreur.setText(str(e))
             return
         self.auth.authentifier(self.login.text(), self.mdp.text())
+        try:
+            codes = self.auth.generer_codes_secours(self.mdp.text())
+        except ErreurMetier:
+            codes = []
+        if codes:  # à noter tout de suite : ils ne seront plus affichés
+            CodesSecoursDialog(codes, self.nom.text().strip(), self).exec()
         self.accept()
+
+    def _oublie(self, *_):
+        dialogue = RecuperationDialog(self.auth, self.login.text(), self)
+        if dialogue.exec() == QDialog.Accepted:
+            self.login.setText(dialogue.login_saisi)
+            self.mdp.clear()
+            self.mdp.setFocus()
+            self.erreur.setText("")
+            self.essais = 0

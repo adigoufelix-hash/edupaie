@@ -10,13 +10,14 @@ CREATE TABLE IF NOT EXISTS eleve (
 );
 
 CREATE TABLE IF NOT EXISTS utilisateur (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    login         TEXT NOT NULL UNIQUE,
-    nom_complet   TEXT NOT NULL,
-    mot_de_passe  TEXT NOT NULL,   -- format : iterations$sel$hash (hex)
-    role          TEXT NOT NULL CHECK (role IN ('admin', 'comptable', 'lecture')),
-    actif         INTEGER NOT NULL DEFAULT 1,
-    cree_le       TEXT NOT NULL DEFAULT (datetime('now'))
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    login            TEXT NOT NULL UNIQUE,
+    nom_complet      TEXT NOT NULL,
+    mot_de_passe     TEXT NOT NULL,   -- format : iterations$sel$hash (hex)
+    role             TEXT NOT NULL CHECK (role IN ('admin', 'comptable', 'lecture')),
+    actif            INTEGER NOT NULL DEFAULT 1,
+    doit_changer_mdp INTEGER NOT NULL DEFAULT 0,
+    cree_le          TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS paiement (
@@ -124,3 +125,12 @@ BEFORE DELETE ON audit
 BEGIN
     SELECT RAISE(ABORT, 'Le journal d''audit ne peut pas être supprimé.');
 END;
+
+CREATE TABLE IF NOT EXISTS code_secours (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    utilisateur_id INTEGER NOT NULL REFERENCES utilisateur(id) ON DELETE CASCADE,
+    empreinte      TEXT NOT NULL,
+    utilise_le     TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_code_secours_utilisateur ON code_secours(utilisateur_id);

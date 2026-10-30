@@ -36,6 +36,9 @@ LIBELLES = {
     "utilisateur.suppression": "Compte supprimé",
     "utilisateur.mdp_reinitialise": "Mot de passe réinitialisé",
     "utilisateur.mdp_change": "Mot de passe modifié",
+    "utilisateur.codes_secours": "Codes de secours générés",
+    "utilisateur.recuperation": "Mot de passe récupéré (code de secours)",
+    "utilisateur.recuperation_echec": "Échec de récupération de mot de passe",
     "recu.alerte": "Reçu douteux présenté",
     "sauvegarde.manuelle": "Sauvegarde manuelle",
     "sauvegarde.restauration": "Sauvegarde restaurée",
@@ -57,7 +60,7 @@ CATEGORIES = {
 SENSIBLES = {
     "echec_connexion", "blocage_connexion", "eleve.suppression", "paiement.annulation",
     "remise.annulee", "utilisateur.suppression", "utilisateur.mdp_reinitialise",
-    "sauvegarde.restauration", "recu.alerte",
+    "sauvegarde.restauration", "recu.alerte","utilisateur.recuperation", "utilisateur.recuperation_echec",
 }
 
 # apres(service, arguments, resultat, avant) -> dict ou None

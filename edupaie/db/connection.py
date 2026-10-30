@@ -33,6 +33,9 @@ MIGRATIONS = {
     "ecole": {
         "couleur": "TEXT",
     },
+    "utilisateur": {
+        "doit_changer_mdp": "INTEGER NOT NULL DEFAULT 0",
+    },
 }
 
 

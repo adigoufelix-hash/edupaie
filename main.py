@@ -4,6 +4,7 @@ import sys
 
 from PySide6.QtWidgets import QApplication, QDialog
 
+from edupaie.repositories.code_secours_repository import CodeSecoursRepository
 from edupaie.db.connection import dossier_donnees, get_connection, initialiser_base
 from edupaie.repositories.audit_repository import JournalRepository
 from edupaie.repositories.classe_repository import ClasseRepository
@@ -75,7 +76,7 @@ def main():
     paiements = PaiementRepository(conn)
 
     # Services « internes » (non journalisés)
-    auth = AuthService(UtilisateurRepository(conn))
+    auth = AuthService(UtilisateurRepository(conn), CodeSecoursRepository(conn))
     journal = JournalService(JournalRepository(conn), auth)
     frais = FraisService(FraisRepository(conn), auth)
     sauvegarde = SauvegardeService(auth)

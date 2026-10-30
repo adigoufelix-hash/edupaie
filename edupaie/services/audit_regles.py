@@ -188,7 +188,7 @@ def regles_echeancier():
 
 # --- Comptes et connexions ---------------------------------------------------------------
 def regles_auth():
-    """Les mots de passe ne sont jamais journalisés."""
+    """Les mots de passe et les codes de secours ne sont jamais journalisés."""
     def creation(service, a, utilisateur_id, avant):
         ligne = service.repo.get(utilisateur_id)
         detail = f"{ligne['login']} ({ligne['role']})" if ligne else f"id {utilisateur_id}"
@@ -225,12 +225,26 @@ def regles_auth():
                 "detail": f"Tentative sur le compte « {_texte(a['login'])[:40]} » "
                           "alors qu'il est bloqué"}
 
+    def codes(service, a, resultat, avant):
+        return {"action": "utilisateur.codes_secours",
+                "detail": "Nouveaux codes de secours générés (les anciens sont invalidés)"}
+
+    def recuperation(service, a, restants, avant):
+        return {"action": "utilisateur.recuperation", "acteur": (None, None),
+                "detail": f"Compte {_texte(a['login'])[:40]} : mot de passe récupéré avec "
+                          f"un code de secours ({restants} code(s) restant(s))"}
+
+    def echec_recuperation(service, a, exception):
+        return {"action": "utilisateur.recuperation_echec", "acteur": (None, None),
+                "detail": f"Récupération sur « {_texte(a['login'])[:40]} » : {exception}"}
+
     return {"creer_utilisateur": Regle(creation),
             "supprimer_utilisateur": Regle(suppression, avant_compte),
             "reinitialiser_mot_de_passe": Regle(reinitialisation, avant_compte),
             "changer_mon_mot_de_passe": Regle(changement),
-            "authentifier": Regle(connexion, None, blocage)}
-
+            "authentifier": Regle(connexion, None, blocage),
+            "generer_codes_secours": Regle(codes),
+            "reinitialiser_avec_code": Regle(recuperation, None, echec_recuperation)}
 
 # --- Système ------------------------------------------------------------------------------
 def regles_sauvegarde():
