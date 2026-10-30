@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QListWidget,
 
 from edupaie.services.ecole import courant
 from edupaie.ui.animations import fondu_page
+from edupaie.ui.annee_page import AnneePage
 from edupaie.ui.caisse_page import CaissePage
 from edupaie.ui.classes_page import ClassesPage
 from edupaie.ui.dashboard_page import DashboardPage
@@ -23,7 +24,7 @@ class MainWindow(QMainWindow):
                  frais_service=None, sauvegarde_service=None, caisse_service=None,
                  remise_service=None, echeancier_service=None, ecole_service=None,
                  import_service=None, classe_service=None, journal_service=None,
-                 verification_service=None):
+                 verification_service=None, annee_service=None):
         super().__init__()
         self.deconnexion = False  # True si on se déconnecte ou se verrouille
         nom_ecole = courant().nom
@@ -43,6 +44,8 @@ class MainWindow(QMainWindow):
             self._ajouter_page("Impayés", ImpayesPage(echeancier_service))
         if caisse_service is not None and auth.peut("caisse.voir"):
             self._ajouter_page("Clôture de caisse", CaissePage(caisse_service))
+        if annee_service is not None and auth.peut("annee.gerer"):
+            self._ajouter_page("Années scolaires", AnneePage(annee_service))
         if classe_service is not None and auth.peut("classe.gerer"):
             self._ajouter_page("Classes", ClassesPage(classe_service))
         if frais_service is not None and auth.peut("frais.gerer"):

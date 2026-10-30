@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (QAbstractItemView, QComboBox, QDialog, QHBoxLayou
                                QWidget)
 
 from edupaie.services.export_excel import exporter_eleves
-from edupaie.services.paiement_service import ErreurMetier
+from edupaie.services.paiement_service import TOUTES_LES_ANNEES, ErreurMetier
 from edupaie.ui.eleve_dialog import EleveDialog
 from edupaie.ui.fiche_eleve_dialog import FicheEleveDialog
 from edupaie.ui.fichiers import apres_export
@@ -34,6 +34,7 @@ class ElevesPage(QWidget):
         self.recherche = QLineEdit()
         self.recherche.setPlaceholderText("Rechercher par nom ou prénom...")
         self.filtre = QComboBox()
+        self.filtre_annee = QComboBox()
         self.filtre_statut = QComboBox()
         self.filtre_statut.addItem("Tous les statuts", None)
         for statut in ("Soldé", "Partiellement payé", "Non payé"):
@@ -63,6 +64,7 @@ class ElevesPage(QWidget):
 
         haut, bas = QHBoxLayout(), QHBoxLayout()
         haut.addWidget(self.recherche, 1)
+        haut.addWidget(self.filtre_annee)
         haut.addWidget(self.filtre)
         haut.addWidget(self.filtre_statut)
         for b in (ajouter, modifier, supprimer, payer, fiche, excel, importer):
@@ -84,6 +86,7 @@ class ElevesPage(QWidget):
 
         self.recherche.textChanged.connect(self.recharger)
         self.filtre.currentIndexChanged.connect(self.recharger)
+        self.filtre_annee.currentIndexChanged.connect(self.recharger)
         self.filtre_statut.currentIndexChanged.connect(self.recharger)
         ajouter.clicked.connect(self._ajouter)
         modifier.clicked.connect(self._modifier)
@@ -93,7 +96,13 @@ class ElevesPage(QWidget):
         excel.clicked.connect(self._exporter_excel)
         importer.clicked.connect(self._importer)
         self.table.cellDoubleClicked.connect(lambda *_: self._fiche())
+        self._remplir_annees()
         self._remplir_classes()
+        self.recharger()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self._remplir_annees()
         self.recharger()
 
     def _autorise(self, permission: str) -> bool:
@@ -102,6 +111,22 @@ class ElevesPage(QWidget):
         QMessageBox.warning(self, "Accès refusé",
                             "Votre rôle ne permet pas cette action.")
         return False
+
+    def _remplir_annees(self):
+        self.filtre_annee.blockSignals(True)
+        courante = self.filtre_annee.currentData()
+        self.filtre_annee.clear()
+        active = self.paiement_service.annee_active()
+        self.filtre_annee.addItem(
+            f"Année active ({active})" if active else "Toutes les années", None)
+        if active:
+            self.filtre_annee.addItem("Toutes les années", TOUTES_LES_ANNEES)
+        annees = sorted({e.annee_scolaire for e in self.service.lister()}, reverse=True)
+        for annee in annees:
+            if annee != active:
+                self.filtre_annee.addItem(annee, annee)
+        self.filtre_annee.setCurrentIndex(max(self.filtre_annee.findData(courante), 0))
+        self.filtre_annee.blockSignals(False)
 
     def _remplir_classes(self):
         self.filtre.blockSignals(True)
@@ -117,7 +142,7 @@ class ElevesPage(QWidget):
     def recharger(self):
         situations = self.paiement_service.situations(
             self.recherche.text().strip(), self.filtre.currentData(),
-            self.filtre_statut.currentData())
+            self.filtre_statut.currentData(), annee=self.filtre_annee.currentData())
         self._situations = situations
         self.table.setRowCount(len(situations))
         for ligne, (e, s) in enumerate(situations):
@@ -140,6 +165,7 @@ class ElevesPage(QWidget):
         if not self._autorise("eleve.ecrire"):
             return
         if EleveDialog(self.service, parent=self, frais=self.frais).exec() == QDialog.Accepted:
+            self._remplir_annees()
             self._remplir_classes()
             self.recharger()
 
@@ -148,6 +174,7 @@ class ElevesPage(QWidget):
             return
         eleve = self._eleve_selectionne()
         if eleve and EleveDialog(self.service, eleve, self, frais=self.frais).exec():
+            self._remplir_annees()
             self._remplir_classes()
             self.recharger()
 
@@ -206,5 +233,6 @@ class ElevesPage(QWidget):
         if not self._autorise("eleve.importer"):
             return
         if ImportDialog(self.import_service, self).exec() == QDialog.Accepted:
+            self._remplir_annees()
             self._remplir_classes()
             self.recharger()

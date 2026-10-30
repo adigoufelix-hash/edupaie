@@ -7,6 +7,7 @@ MODES = ("especes", "cheque", "virement", "mobile_money")
 STATUT_SOLDE = "Soldé"
 STATUT_PARTIEL = "Partiellement payé"
 STATUT_NON_PAYE = "Non payé"
+TOUTES_LES_ANNEES = "*"
 
 
 class ErreurMetier(Exception):
@@ -31,10 +32,19 @@ def calculer_statut(total_du: int, total_paye: int) -> str:
 
 
 class PaiementService:
-    def __init__(self, eleve_repo, paiement_repo, auth=None):
+    def __init__(self, eleve_repo, paiement_repo, auth=None, annee_active=None):
         self.eleves = eleve_repo
         self.paiements = paiement_repo
         self.auth = auth  # utilisateur connecté (None dans les tests)
+        self._annee_active = annee_active  # fonction sans argument : année active ou None
+
+    def annee_active(self):
+        return self._annee_active() if self._annee_active else None
+
+    def _filtre_annee(self, annee):
+        if annee == TOUTES_LES_ANNEES:
+            return None
+        return annee or self.annee_active()
 
     def situation(self, eleve_id: int) -> Situation:
         eleve = self.eleves.get(eleve_id)
@@ -45,9 +55,9 @@ class PaiementService:
         paye = self.paiements.total_paye(eleve_id)
         return Situation(net, paye, net - paye, calculer_statut(net, paye), remise)
 
-    def tableau_de_bord(self) -> dict:
-        """Chiffres clés pour le tableau de bord."""
-        situations = self.situations()
+    def tableau_de_bord(self, annee=None) -> dict:
+        """Chiffres clés pour le tableau de bord (année active par défaut)."""
+        situations = self.situations(annee=annee)
         return {
             "nb_eleves": len(situations),
             "total_encaisse": sum(s.total_paye for _, s in situations),
@@ -62,10 +72,14 @@ class PaiementService:
         return self.paiements.lister_par_eleve(eleve_id)
 
     def situations(self, recherche: str = "", classe: str | None = None,
-                   statut: str | None = None) -> list[tuple]:
-        """Liste (élève, situation) filtrable par statut de paiement."""
+                   statut: str | None = None, annee: str | None = None) -> list[tuple]:
+        """Liste (élève, situation) filtrable par statut et par année scolaire.
+        annee : None = année active (toutes si aucune) ; TOUTES_LES_ANNEES = toutes."""
+        filtre = self._filtre_annee(annee)
         resultat = []
         for eleve in self.eleves.lister(recherche, classe):
+            if filtre and eleve.annee_scolaire != filtre:
+                continue
             sit = self.situation(eleve.id)
             if statut is None or sit.statut == statut:
                 resultat.append((eleve, sit))

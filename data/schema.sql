@@ -134,3 +134,17 @@ CREATE TABLE IF NOT EXISTS code_secours (
 );
 
 CREATE INDEX IF NOT EXISTS idx_code_secours_utilisateur ON code_secours(utilisateur_id);
+
+CREATE TABLE IF NOT EXISTS passage (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    eleve_ancien_id  INTEGER NOT NULL REFERENCES eleve(id) ON DELETE CASCADE,
+    eleve_nouveau_id INTEGER NOT NULL REFERENCES eleve(id) ON DELETE CASCADE,
+    annee_source     TEXT NOT NULL,
+    annee_cible      TEXT NOT NULL,
+    classe_source    TEXT NOT NULL,
+    classe_cible     TEXT NOT NULL,
+    arrieres         INTEGER NOT NULL DEFAULT 0,
+    fait_le          TEXT NOT NULL,
+    fait_par         TEXT,
+    UNIQUE (eleve_ancien_id, annee_cible)
+);

@@ -310,3 +310,22 @@ def regles_verification():
                           f"{_texte(a['saisie'])[:60]}"}
 
     return {"verifier": Regle(verification)}
+
+def regles_annee():
+    def passage(service, a, r, avant):
+        return {"action": "annee.passage",
+                "detail": f"Passage {a['annee_source']} → {r['cible']} : "
+                          f"{r['reinscrits']} réinscrit(s), {r['sortants']} sortant(s), "
+                          f"arriérés reportés : {_fcfa(r['arrieres'])}"}
+
+    def active(service, a, resultat, avant):
+        return {"action": "annee.active", "detail": f"Année active : {_texte(a['annee'])}"}
+
+    def frais(service, a, r, avant):
+        return {"action": "annee.frais",
+                "detail": f"Frais et échéanciers repris de {a['annee_source']} vers "
+                          f"{r['cible']} : {r['frais_lignes']} ligne(s) de frais, "
+                          f"{r['echeance_lignes']} tranche(s)"}
+
+    return {"executer": Regle(passage), "definir_active": Regle(active),
+            "reprendre_frais": Regle(frais)}

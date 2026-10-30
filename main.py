@@ -4,10 +4,11 @@ import sys
 
 from PySide6.QtWidgets import QApplication, QDialog
 
-from edupaie.repositories.code_secours_repository import CodeSecoursRepository
 from edupaie.db.connection import dossier_donnees, get_connection, initialiser_base
+from edupaie.repositories.annee_repository import AnneeRepository
 from edupaie.repositories.audit_repository import JournalRepository
 from edupaie.repositories.classe_repository import ClasseRepository
+from edupaie.repositories.code_secours_repository import CodeSecoursRepository
 from edupaie.repositories.contact_repository import ContactRepository
 from edupaie.repositories.echeance_repository import EcheanceRepository
 from edupaie.repositories.ecole_repository import EcoleRepository
@@ -19,6 +20,7 @@ from edupaie.repositories.remise_repository import RemiseRepository
 from edupaie.repositories.utilisateur_repository import UtilisateurRepository
 from edupaie.repositories.verification_repository import VerificationRepository
 from edupaie.services import audit_regles, verification
+from edupaie.services.annee_service import AnneeService
 from edupaie.services.audit import Audite, JournalService
 from edupaie.services.auth_service import AuthService
 from edupaie.services.caisse_service import CaisseService
@@ -92,6 +94,7 @@ def main():
     importation = ImportEleveService(ImportRepository(conn), eleves, frais, auth, sauvegarde)
     verif = VerificationService(VerificationRepository(conn), auth)
     verification.definir_cle(verif.cle())  # clé des codes de contrôle des reçus
+    annees = AnneeService(AnneeRepository(conn), ClasseRepository(conn), auth, sauvegarde)
 
     # Services affichés à l'écran : enveloppés pour alimenter le journal d'audit
     def audite(service, regles):
@@ -99,8 +102,9 @@ def main():
 
     auth_ui = audite(auth, audit_regles.regles_auth())
     eleve_service = audite(EleveService(eleves), audit_regles.regles_eleve())
-    paiement_service = audite(PaiementService(eleves, paiements, auth),
-                              audit_regles.regles_paiement())
+    paiement_service = audite(
+        PaiementService(eleves, paiements, auth, annee_active=annees.active),
+        audit_regles.regles_paiement())
     frais_ui = audite(frais, audit_regles.regles_frais())
     sauvegarde_ui = audite(sauvegarde, audit_regles.regles_sauvegarde())
     remises_ui = audite(remises, audit_regles.regles_remise())
@@ -109,6 +113,7 @@ def main():
     importation_ui = audite(importation, audit_regles.regles_import())
     classes_ui = audite(gestion_classes, audit_regles.regles_classe())
     verif_ui = audite(verif, audit_regles.regles_verification())
+    annees_ui = audite(annees, audit_regles.regles_annee())
 
     # Connexion obligatoire, répétée après chaque déconnexion ou verrouillage
     while True:
@@ -123,7 +128,7 @@ def main():
             eleve_service, paiement_service, auth_ui, frais_ui, sauvegarde_ui,
             caisse, remises_ui, echeancier_ui, ecole_ui, importation_ui,
             classe_service=classes_ui, journal_service=journal,
-            verification_service=verif_ui,
+            verification_service=verif_ui, annee_service=annees_ui,
         )
         fenetre.resize(1180, 720)
         fenetre.showMaximized()

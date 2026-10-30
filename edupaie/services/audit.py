@@ -43,6 +43,9 @@ LIBELLES = {
     "sauvegarde.manuelle": "Sauvegarde manuelle",
     "sauvegarde.restauration": "Sauvegarde restaurée",
     "ecole.modification": "Paramètres de l'école modifiés",
+    "annee.passage": "Passage à l'année suivante",
+    "annee.active": "Année active modifiée",
+    "annee.frais": "Frais et échéanciers repris",
 }
 
 CATEGORIES = {
@@ -53,7 +56,7 @@ CATEGORIES = {
     "Frais et échéancier": ("frais.%", "echeancier.%"),
     "Utilisateurs": ("utilisateur.%",),
     "Reçus": ("recu.%",),
-    "Système": ("sauvegarde.%", "ecole.%"),
+    "Système": ("sauvegarde.%", "ecole.%", "annee.%"),
 }
 
 # Événements mis en évidence (en rouge) dans l'écran du journal
