@@ -35,6 +35,8 @@ class EcolePage(QWidget):
         self.nom.setPlaceholderText("Ex. : Collège Saint-Joseph de Lomé")
         self.adresse = QLineEdit(parametres.adresse)
         self.adresse.setPlaceholderText("Ex. : Rue des Écoles, Lomé")
+        self.boite_postale = QLineEdit(parametres.boite_postale)
+        self.boite_postale.setPlaceholderText("Ex. : BP 1234 (ou seulement 1234)")
         self.telephone = QLineEdit(parametres.telephone)
         self.telephone.setPlaceholderText("Ex. : +228 90 12 34 56")
         self.email = QLineEdit(parametres.email)
@@ -88,6 +90,7 @@ class EcolePage(QWidget):
         form = QFormLayout()
         form.addRow("Nom de l'école", self.nom)
         form.addRow("Adresse", self.adresse)
+        form.addRow("Boîte postale", self.boite_postale)
         form.addRow("Téléphone", self.telephone)
         form.addRow("E-mail", self.email)
         boutons_logo = QVBoxLayout()
@@ -192,7 +195,8 @@ class EcolePage(QWidget):
                 self.nom.text(), self.adresse.text(), self.telephone.text(),
                 self.email.text(),
                 logo=self._logo if self._logo_change else GARDER,
-                couleur=self._couleur if self._couleur_change else GARDER)
+                couleur=self._couleur if self._couleur_change else GARDER,
+                boite_postale=self.boite_postale.text())
         except ErreurMetier as e:
             QMessageBox.warning(self, "Données invalides", str(e))
             return
@@ -205,10 +209,13 @@ class EcolePage(QWidget):
             self, "Paramètres", "Enregistré. Les prochains PDF utiliseront ces informations.")
 
     def _apercu(self):
+        boite = self.boite_postale.text().strip()
+        if boite.isdigit():
+            boite = f"BP {boite}"
         parametres = ParametresEcole(
             " ".join(self.nom.text().split()), self.adresse.text().strip(),
             self.telephone.text().strip(), self.email.text().strip(), self._logo,
-            self._couleur)
+            self._couleur, boite)
         eleve = Eleve(None, "Kouassi", "Kofi", "6e A", "2026-2027", 100000)
         paiement = Paiement(
             id=1, eleve_id=1, numero_recu="REC-0000-000000", montant=40000,

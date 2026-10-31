@@ -32,7 +32,9 @@ MIGRATIONS = {
     },
     "ecole": {
         "couleur": "TEXT",
+        "boite_postale": "TEXT",
     },
+    
     "utilisateur": {
         "doit_changer_mdp": "INTEGER NOT NULL DEFAULT 0",
     },

@@ -54,6 +54,20 @@ class TestEcoleService(unittest.TestCase):
         self.assertEqual(courant().nom, "Collège Saint-Joseph")
         self.service.enregistrer("Autre nom")
         self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM ecole").fetchone()[0], 1)
+    
+    def test_boite_postale(self):
+        self.service.enregistrer("École", "Rue des Écoles", "+228 90 12 34 56",
+                                 "contact@ecole.tg", boite_postale="1234")
+        p = self.service.lire()
+        self.assertEqual(p.boite_postale, "BP 1234")
+        self.assertEqual(p.coordonnees,
+                         "Rue des Écoles - BP 1234 - +228 90 12 34 56 - contact@ecole.tg")
+        self.assertEqual((p.ligne_adresse, p.ligne_contact),
+                         ("Rue des Écoles - BP 1234", "+228 90 12 34 56 - contact@ecole.tg"))
+        self.service.enregistrer("École", boite_postale="B.P. 56 Lomé")
+        self.assertEqual(self.service.lire().boite_postale, "B.P. 56 Lomé")
+        with self.assertRaises(ErreurMetier):
+            self.service.enregistrer("École", boite_postale="x" * 31)
 
     def test_le_logo_est_garde_remplace_ou_retire(self):
         logo = petit_logo()
@@ -117,6 +131,8 @@ class TestPdfAvecEcole(unittest.TestCase):
                         "contact@ecole.tg", petit_logo()),
         ParametresEcole("Œuvre Đức Nguyễn", logo=petit_logo((30, 90))),
         ParametresEcole("École test", logo=b"pas une image"),
+        ParametresEcole("École avec BP", "Rue des Écoles, quartier Adidogomé, Lomé",
+                        "+228 90 12 34 56", "contact@ecole.tg", boite_postale="BP 1234"),
     ]
 
     def tearDown(self):

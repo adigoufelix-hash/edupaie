@@ -22,7 +22,7 @@ class EcoleService:
         return ParametresEcole(
             ligne["nom"] or "", ligne["adresse"] or "", ligne["telephone"] or "",
             ligne["email"] or "", bytes(ligne["logo"]) if ligne["logo"] else None,
-            ligne["couleur"] or "")
+            ligne["couleur"] or "", ligne["boite_postale"] or "")
 
     @staticmethod
     def _texte(valeur, maximum, nom) -> str:
@@ -32,7 +32,7 @@ class EcoleService:
         return valeur
 
     def enregistrer(self, nom, adresse="", telephone="", email="",
-                    logo=GARDER, couleur=GARDER) -> None:
+                    logo=GARDER, couleur=GARDER, boite_postale="") -> None:
         """logo : GARDER, None (retirer) ou une image PNG.
         couleur : GARDER, "" (couleur d'origine) ou un code #RRGGBB."""
         if not self.peut_modifier():
@@ -42,6 +42,9 @@ class EcoleService:
         if not nom:
             raise ErreurMetier("Le nom de l'école est obligatoire.")
         adresse = self._texte(adresse, 120, "L'adresse")
+        boite_postale = self._texte(boite_postale, 30, "La boîte postale")
+        if boite_postale.isdigit():  # « 1234 » devient « BP 1234 »
+            boite_postale = f"BP {boite_postale}"
         telephone = self._texte(telephone, 40, "Le téléphone")
         email = self._texte(email, 80, "L'e-mail")
         if email and "@" not in email:
@@ -64,5 +67,5 @@ class EcoleService:
                 if couleur is None:
                     raise ErreurMetier(
                         "Couleur invalide : utilise le format #RRGGBB (ex. #0F766E).")
-        self.repo.enregistrer(nom, adresse, telephone, email, logo, couleur)
+        self.repo.enregistrer(nom, adresse, telephone, email, logo, couleur, boite_postale)
         definir(self.lire())  # les PDF suivants utilisent aussitôt les nouvelles valeurs

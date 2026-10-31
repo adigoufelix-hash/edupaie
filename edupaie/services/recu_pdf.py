@@ -60,10 +60,10 @@ def generer_recu_pdf(eleve, paiement, dossier, ecole=None) -> Path:
     x_texte = 38 if dessiner_logo(pdf, ecole.logo, 12, 6, 22) else 12
     nom, taille = adapter(pdf, ecole.nom_affiche, 136 - x_texte, 20, 9)
     _texte(pdf, x_texte, 7, 136 - x_texte, 9, nom, taille, True, BLANC)
-    coordonnees, taille = adapter(
-        pdf, ecole.coordonnees or "Gestion des paiements scolaires",
-        136 - x_texte, 9, 6, style="")
-    _texte(pdf, x_texte, 18, 136 - x_texte, 5, coordonnees, taille, False, LAVANDE)
+    lignes = [l for l in (ecole.ligne_adresse, ecole.ligne_contact) if l]
+    for i, ligne in enumerate(lignes or ["Gestion des paiements scolaires"]):
+        texte, taille = adapter(pdf, ligne, 136 - x_texte, 8.5, 6, style="")
+        _texte(pdf, x_texte, 17.5 + i * 5, 136 - x_texte, 5, texte, taille, False, LAVANDE)
     _texte(pdf, 12, 33, 70, 6, "REÇU DE PAIEMENT", 11, True, BLANC)
     _texte(pdf, 80, 29, 56, 4, "N° DE REÇU", 7, False, LAVANDE, "R")
     _texte(pdf, 80, 33, 56, 7, paiement.numero_recu, 12, True, BLANC, "R")

@@ -9,16 +9,19 @@ class EcoleRepository:
 
     def lire(self):
         return self.conn.execute(
-            "SELECT nom, adresse, telephone, email, logo, couleur FROM ecole WHERE id = 1"
-        ).fetchone()
+            "SELECT nom, adresse, telephone, email, logo, couleur, boite_postale "
+            "FROM ecole WHERE id = 1").fetchone()
 
-    def enregistrer(self, nom, adresse, telephone, email, logo, couleur) -> None:
+    def enregistrer(self, nom, adresse, telephone, email, logo, couleur,
+                    boite_postale) -> None:
         with self.conn:  # commit ou rollback automatique
             self.conn.execute(
-                """INSERT INTO ecole (id, nom, adresse, telephone, email, logo, couleur)
-                   VALUES (1, ?, ?, ?, ?, ?, ?)
+                """INSERT INTO ecole (id, nom, adresse, telephone, email, logo, couleur,
+                                      boite_postale)
+                   VALUES (1, ?, ?, ?, ?, ?, ?, ?)
                    ON CONFLICT(id) DO UPDATE SET
                        nom = excluded.nom, adresse = excluded.adresse,
                        telephone = excluded.telephone, email = excluded.email,
-                       logo = excluded.logo, couleur = excluded.couleur""",
-                (nom, adresse, telephone, email, logo, couleur))
+                       logo = excluded.logo, couleur = excluded.couleur,
+                       boite_postale = excluded.boite_postale""",
+                (nom, adresse, telephone, email, logo, couleur, boite_postale))
