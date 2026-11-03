@@ -46,6 +46,8 @@ LIBELLES = {
     "annee.passage": "Passage à l'année suivante",
     "annee.active": "Année active modifiée",
     "annee.frais": "Frais et échéanciers repris",
+    "licence.activation": "Licence activée",
+    "licence.echec": "Activation de licence refusée",
 }
 
 CATEGORIES = {
@@ -56,7 +58,7 @@ CATEGORIES = {
     "Frais et échéancier": ("frais.%", "echeancier.%"),
     "Utilisateurs": ("utilisateur.%",),
     "Reçus": ("recu.%",),
-    "Système": ("sauvegarde.%", "ecole.%", "annee.%"),
+    "Système": ("sauvegarde.%", "ecole.%", "annee.%", "licence.%"),
 }
 
 # Événements mis en évidence (en rouge) dans l'écran du journal
@@ -64,6 +66,7 @@ SENSIBLES = {
     "echec_connexion", "blocage_connexion", "eleve.suppression", "paiement.annulation",
     "remise.annulee", "utilisateur.suppression", "utilisateur.mdp_reinitialise",
     "sauvegarde.restauration", "recu.alerte","utilisateur.recuperation", "utilisateur.recuperation_echec",
+    "licence.echec"
 }
 
 # apres(service, arguments, resultat, avant) -> dict ou None

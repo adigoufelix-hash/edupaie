@@ -329,3 +329,17 @@ def regles_annee():
 
     return {"executer": Regle(passage), "definir_active": Regle(active),
             "reprendre_frais": Regle(frais)}
+
+def regles_licence():
+    """La clé de licence elle-même n'est jamais journalisée."""
+    def activation(service, a, etat, avant):
+        validite = (f"valable jusqu'au {etat.expire_le}" if etat.expire_le
+                    else "sans limite de durée")
+        return {"action": "licence.activation",
+                "detail": f"Licence {etat.licence_id} activée pour « {_texte(etat.ecole)} » "
+                          f"- {validite}"}
+
+    def echec(service, a, exception):
+        return {"action": "licence.echec", "detail": f"Activation refusée : {exception}"}
+
+    return {"activer": Regle(activation, None, echec)}

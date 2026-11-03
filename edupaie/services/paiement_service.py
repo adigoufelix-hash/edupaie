@@ -90,7 +90,8 @@ class PaiementService:
         if self.auth is not None:
             if not self.auth.peut("paiement.encaisser"):
                 raise ErreurMetier(
-                    "Votre rôle ne permet pas d'enregistrer un paiement.")
+                    "Enregistrement impossible : ton rôle ne le permet pas, ou la "
+                    "licence est expirée (mode consultation).")
             utilisateur = self.auth.utilisateur
 
         montant = self._valider_montant(montant)

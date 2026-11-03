@@ -2,7 +2,7 @@ import secrets
 import sqlite3
 from datetime import datetime
 
-from edupaie.permissions import ROLES, a_permission
+from edupaie.permissions import ROLES, SANS_LICENCE, a_permission
 from edupaie.security import (
     doit_etre_rehache,
     generer_sel,
@@ -41,12 +41,16 @@ class AuthService:
         self.codes = codes  # dépôt des codes de secours (None dans certains tests)
         self.utilisateur = None  # dict de l'utilisateur connecté
         self._echecs = {}
+        self.restriction = None  # fonction sans argument : True si la licence est expirée
+        self._restreint = False  # mode consultation, fixé à chaque connexion
 
     # --- Droits --------------------------------------------------------------------
     def peut(self, permission: str) -> bool:
-        return self.utilisateur is not None and a_permission(
-            self.utilisateur["role"], permission)
-
+        if self.utilisateur is None:
+            return False
+        if self._restreint and permission not in SANS_LICENCE:
+            return False  # licence expirée : mode consultation
+        return a_permission(self.utilisateur["role"], permission)
     def _exiger_admin(self):
         if not self.peut("utilisateur.gerer"):
             raise ErreurMetier("Action réservée à l'administrateur.")
@@ -125,10 +129,12 @@ class AuthService:
             "role": ligne["role"],
             "doit_changer_mdp": bool(ligne["doit_changer_mdp"]),
         }
+        self._restreint = bool(self.restriction()) if self.restriction else False
         return self.utilisateur
 
     def deconnecter(self) -> None:
         self.utilisateur = None
+        self._restreint = False
 
     # --- Changement de mot de passe ----------------------------------------------------
     def changer_mon_mot_de_passe(self, ancien: str, nouveau: str) -> None:

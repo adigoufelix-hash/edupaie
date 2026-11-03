@@ -4,6 +4,11 @@ import sys
 
 from PySide6.QtWidgets import QApplication, QDialog
 
+from edupaie.repositories.demarrage_repository import DemarrageRepository
+from edupaie.services.demarrage_service import DemarrageService
+from edupaie.services.guide import GuideService
+from edupaie.repositories.parametre_repository import ParametreRepository
+from edupaie.services.licence_service import LicenceService, MarquesExternes
 from edupaie.db.connection import dossier_donnees, get_connection, initialiser_base
 from edupaie.repositories.annee_repository import AnneeRepository
 from edupaie.repositories.audit_repository import JournalRepository
@@ -95,6 +100,10 @@ def main():
     verif = VerificationService(VerificationRepository(conn), auth)
     verification.definir_cle(verif.cle())  # clé des codes de contrôle des reçus
     annees = AnneeService(AnneeRepository(conn), ClasseRepository(conn), auth, sauvegarde)
+    licence = LicenceService(ParametreRepository(conn), marques=MarquesExternes(), auth=auth)
+    auth.restriction = licence.restreint  # évalué à chaque connexion
+    guide = GuideService(auth)
+    demarrage = DemarrageService(DemarrageRepository(conn), auth, sauvegarde, licence)
 
     # Services affichés à l'écran : enveloppés pour alimenter le journal d'audit
     def audite(service, regles):
@@ -114,6 +123,7 @@ def main():
     classes_ui = audite(gestion_classes, audit_regles.regles_classe())
     verif_ui = audite(verif, audit_regles.regles_verification())
     annees_ui = audite(annees, audit_regles.regles_annee())
+    licence_ui = audite(licence, audit_regles.regles_licence())
 
     # Connexion obligatoire, répétée après chaque déconnexion ou verrouillage
     while True:
@@ -128,7 +138,8 @@ def main():
             eleve_service, paiement_service, auth_ui, frais_ui, sauvegarde_ui,
             caisse, remises_ui, echeancier_ui, ecole_ui, importation_ui,
             classe_service=classes_ui, journal_service=journal,
-            verification_service=verif_ui, annee_service=annees_ui,
+            verification_service=verif_ui, annee_service=annees_ui, licence_service=licence_ui,
+            guide_service=guide, demarrage_service=demarrage,
         )
         fenetre.resize(1180, 720)
         fenetre.showMaximized()
