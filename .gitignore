@@ -14,3 +14,9 @@ sauvegardes/
 impayes/
 exports/
 clotures/
+
+outils/cle_privee.pem
+outils/registre_licences.csv
+outils/licences_emises/
+*.pem
+*.licence
