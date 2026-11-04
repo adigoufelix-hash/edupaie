@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (QApplication, QDialog, QFileDialog, QHBoxLayout, 
 from edupaie.services.ecole import courant
 from edupaie.services.licence import SUPPORT_EMAIL, SUPPORT_WHATSAPP
 from edupaie.services.paiement_service import ErreurMetier
+from edupaie.version import VERSION
 
 STYLES = {"licence": ("#dcfce7", "#166534"), "essai": ("#ffedd5", "#9a3412"),
           "expire": ("#fee2e2", "#991b1b")}
@@ -134,6 +135,7 @@ class LicencePage(QWidget):
         if not self.service.configuree():
             lignes.append("<span style='color:#991b1b'>⚠ Développeur : la clé publique "
                           "n'est pas configurée (outils/generer_cles.py).</span>")
+            lignes.append(f"Version d'EduPaie : <b>{VERSION}</b>")
         self.details.setText("<br>".join(lignes))
 
     def _copier(self):
