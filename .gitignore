@@ -20,3 +20,6 @@ outils/registre_licences.csv
 outils/licences_emises/
 *.pem
 *.licence
+build/
+dist/
+installateur/

@@ -4,6 +4,11 @@ import sys
 
 from PySide6.QtWidgets import QApplication, QDialog
 
+import traceback
+from datetime import datetime
+from pathlib import Path
+
+from PySide6.QtGui import QIcon
 from edupaie.repositories.demarrage_repository import DemarrageRepository
 from edupaie.services.demarrage_service import DemarrageService
 from edupaie.services.guide import GuideService
@@ -66,13 +71,36 @@ def sauvegarder_sans_bloquer(service):
         print("Sauvegarde automatique impossible :", e, file=sys.stderr)
 
 
+def chemin_ressource(relatif: str) -> Path:
+    """Fichier embarqué (icône...) : dans l'exécutable ou dans le projet."""
+    base = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
+    return base / relatif
+
+
+def installer_journal_erreurs():
+    """Version installée (sans console) : les erreurs imprévues vont dans erreurs.log."""
+    def ecrire(type_, valeur, trace):
+        try:
+            with open(dossier_donnees() / "erreurs.log", "a", encoding="utf-8") as f:
+                f.write(datetime.now().isoformat(timespec="seconds") + "\n")
+                traceback.print_exception(type_, valeur, trace, file=f)
+                f.write("\n")
+        except OSError:
+            pass
+        sys.__excepthook__(type_, valeur, trace)
+
+    sys.excepthook = ecrire
 def main():
     preparer_dossier_de_travail()
+    installer_journal_erreurs()
     initialiser_base()
 
     app = QApplication(sys.argv)
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     app.setStyle("Fusion")
+    icone = chemin_ressource("assets/EduPaie.ico")
+    if icone.exists():
+        app.setWindowIcon(QIcon(str(icone)))
     protege_boutons = ProtegeBoutons(app)
     fondu = FonduDialogues(app)
     app.installEventFilter(fondu)

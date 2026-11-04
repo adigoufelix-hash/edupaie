@@ -1,4 +1,6 @@
-PySide6>=6.6
-fpdf2>=2.8
-openpyxl>=3.1
+PySide6
+fpdf2
+openpyxl
+segno>=1.6
 cryptography>=42
+Pillow

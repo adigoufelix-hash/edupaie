@@ -565,7 +565,9 @@ ARTICLES = [
         "base et dans les sauvegardes.</li>"
         "<li>Un administrateur peut consulter le journal d'audit pour retrouver ce qui "
         "s'est passé.</li>"
-        "<li>Contacte ton fournisseur avec le message noté.</li>"
+        "<li>Contacte ton fournisseur avec le message noté et, s'il existe, le fichier "
+        "<b>erreurs.log</b> du dossier %LOCALAPPDATA%\\EduPaie (tape ce chemin dans la barre "
+        "d'adresse de l'Explorateur de fichiers).</li>"
         "</ol>"
         "{support}",
         mots_cles="problème erreur bug aide support contact panne"),
