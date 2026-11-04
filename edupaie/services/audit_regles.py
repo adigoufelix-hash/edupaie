@@ -343,3 +343,22 @@ def regles_licence():
         return {"action": "licence.echec", "detail": f"Activation refusée : {exception}"}
 
     return {"activer": Regle(activation, None, echec)}
+
+def regles_resume():
+    """Le numéro de téléphone lui-même n'est pas écrit dans le journal."""
+    def _fr(iso):
+        annee, mois, jour = str(iso)[:10].split("-")
+        return f"{jour}/{mois}/{annee}"
+
+    def lien(service, a, resultat, avant):
+        periode = (_fr(a["debut"]) if a["debut"] == a["fin"]
+                   else f"du {_fr(a['debut'])} au {_fr(a['fin'])}")
+        return {"action": "caisse.resume",
+                "detail": f"Résumé de caisse préparé pour WhatsApp ({periode})"}
+
+    def numero(service, a, resultat, avant):
+        return {"action": "caisse.numero",
+                "detail": "Numéro WhatsApp de la direction "
+                          + ("enregistré" if resultat else "retiré")}
+
+    return {"lien_whatsapp": Regle(lien), "definir_numero": Regle(numero)}

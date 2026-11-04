@@ -1,8 +1,8 @@
 from PySide6.QtCore import QDate, Qt, QUrl
 from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import (QAbstractItemView, QDateEdit, QHBoxLayout, QLabel,
-                               QMessageBox, QPushButton, QTableWidget,
-                               QTableWidgetItem, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QDateEdit, QHBoxLayout,
+                               QInputDialog, QLabel, QLineEdit, QMessageBox, QPushButton,
+                               QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 
 from edupaie.services.cloture_pdf import generer_cloture_pdf
 from edupaie.services.export_excel import exporter_cloture
@@ -16,9 +16,10 @@ LIBELLES_MODES = {valeur: libelle for libelle, valeur in MODES_UI}
 
 
 class CaissePage(QWidget):
-    def __init__(self, service, dossier_pdf="clotures"):
+    def __init__(self, service, dossier_pdf="clotures", resume_service=None):
         super().__init__()
         self.service = service
+        self.resume_service = resume_service
         self.dossier_pdf = dossier_pdf
         self.cloture = None
 
@@ -65,6 +66,26 @@ class CaissePage(QWidget):
         mise_en_page.addLayout(haut)
         mise_en_page.addWidget(self.resume)
         mise_en_page.addWidget(self.table)
+
+        if resume_service is not None:  # résumé de la période envoyé à la direction
+            self.destinataire = QLabel()
+            self.destinataire.setTextFormat(Qt.TextFormat.RichText)
+            self.destinataire.setWordWrap(True)
+            whatsapp = QPushButton("Résumé par WhatsApp")
+            copier = QPushButton("Copier le message")
+            numero = QPushButton("Numéro de la direction...")
+            numero.setVisible(resume_service.peut_definir_numero())
+            whatsapp.clicked.connect(self._envoyer_whatsapp)
+            copier.clicked.connect(self._copier_message)
+            numero.clicked.connect(self._definir_numero)
+            ligne = QHBoxLayout()
+            ligne.addWidget(whatsapp)
+            ligne.addWidget(copier)
+            ligne.addWidget(numero)
+            ligne.addStretch()
+            mise_en_page.addWidget(self.destinataire)
+            mise_en_page.addLayout(ligne)
+            self._maj_destinataire()
 
         self.debut.dateChanged.connect(self.recharger)
         self.fin.dateChanged.connect(self.recharger)
@@ -142,3 +163,54 @@ class CaissePage(QWidget):
             QMessageBox.warning(self, "Export impossible", str(e))
             return
         apres_export(self, chemin)
+
+    # --- Résumé pour la direction ---------------------------------------------------------------
+    def _maj_destinataire(self):
+        numero = self.resume_service.numero_affiche()
+        if numero:
+            self.destinataire.setText(f"Le résumé sera envoyé à : <b>{numero}</b>")
+        else:
+            self.destinataire.setText(
+                "Le destinataire se choisit dans WhatsApp (contact ou groupe). "
+                "L'administrateur peut enregistrer le numéro de la direction.")
+
+    def _envoyer_whatsapp(self):
+        if self.cloture is None:
+            QMessageBox.information(self, "Résumé", "Choisis d'abord une période valide.")
+            return
+        try:
+            lien = self.resume_service.lien_whatsapp(
+                self._iso(self.debut), self._iso(self.fin))
+        except ErreurMetier as e:
+            QMessageBox.warning(self, "Résumé impossible", str(e))
+            return
+        QDesktopServices.openUrl(QUrl(lien))
+
+    def _copier_message(self):
+        if self.cloture is None:
+            QMessageBox.information(self, "Résumé", "Choisis d'abord une période valide.")
+            return
+        try:
+            texte = self.resume_service.message(self._iso(self.debut), self._iso(self.fin))
+        except ErreurMetier as e:
+            QMessageBox.warning(self, "Résumé impossible", str(e))
+            return
+        QApplication.clipboard().setText(texte)
+        QMessageBox.information(
+            self, "Message copié",
+            "Le message est dans le presse-papiers : colle-le dans WhatsApp, un SMS ou un "
+            "e-mail.")
+
+    def _definir_numero(self):
+        numero, ok = QInputDialog.getText(
+            self, "Numéro de la direction",
+            "Numéro WhatsApp du directeur (laisse vide pour le retirer) :",
+            QLineEdit.Normal, self.resume_service.numero_affiche())
+        if not ok:
+            return
+        try:
+            self.resume_service.definir_numero(numero)
+        except ErreurMetier as e:
+            QMessageBox.warning(self, "Numéro invalide", str(e))
+            return
+        self._maj_destinataire()

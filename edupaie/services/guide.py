@@ -571,6 +571,35 @@ ARTICLES = [
         "</ol>"
         "{support}",
         mots_cles="problème erreur bug aide support contact panne"),
+
+    Article(
+        "resume_jour", "Au quotidien", "Envoyer le résumé de la journée au directeur",
+        "<p>À la fin de la journée, le comptable peut envoyer un résumé de ses encaissements "
+        "au directeur par WhatsApp.</p>"
+        "<ol>"
+        "<li>Ouvre « Clôture de caisse » et vérifie la période (« Aujourd'hui » par "
+        "défaut).</li>"
+        "<li>Clique sur « Résumé par WhatsApp » : WhatsApp s'ouvre avec le message déjà "
+        "écrit.</li>"
+        "<li>Relis-le, puis appuie sur Envoyer dans WhatsApp. <b>Rien n'est envoyé "
+        "tant que tu n'as pas appuyé sur Envoyer.</b></li>"
+        "</ol>"
+        "<p>Le message donne le total encaissé, le détail par mode de paiement et par "
+        "caissier, les paiements annulés (avec leur motif) et, pour l'administrateur, les "
+        "remises accordées. Un comptable ne résume que ses propres encaissements.</p>"
+        "<ul>"
+        "<li><b>Numéro de la direction</b> : l'administrateur l'enregistre une fois avec le "
+        "bouton « Numéro de la direction... ». Sans numéro, tu choisis le destinataire (ou "
+        "un groupe) dans WhatsApp.</li>"
+        "<li><b>Pas de WhatsApp ou pas d'internet</b> : « Copier le message » le place dans "
+        "le presse-papiers, pour le coller dans un SMS ou un e-mail.</li>"
+        "</ul>"
+        + _note("EduPaie n'envoie rien tout seul : quelqu'un doit cliquer chaque jour. Pour "
+                "voir le détail complet, le directeur consulte le journal d'audit sur le poste "
+                "de la caisse.")
+        + "<p>Voir aussi " + _g("cloture", "Faire la clôture de caisse") + ".</p>",
+        permission="caisse.voir", ecran="caisse",
+        mots_cles="résumé whatsapp directeur rapport journée envoyer message comptable"),
 ]
 
 

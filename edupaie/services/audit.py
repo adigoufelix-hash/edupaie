@@ -48,12 +48,14 @@ LIBELLES = {
     "annee.frais": "Frais et échéanciers repris",
     "licence.activation": "Licence activée",
     "licence.echec": "Activation de licence refusée",
+    "caisse.resume": "Résumé de caisse préparé pour WhatsApp",
+    "caisse.numero": "Numéro WhatsApp de la direction modifié",
 }
 
 CATEGORIES = {
     "Connexions": ("connexion", "echec_connexion", "blocage_connexion"),
     "Élèves": ("eleve.%", "contact.%", "classe.%"),
-    "Paiements": ("paiement.%",),
+    "Paiements": ("paiement.%", "caisse.%"),
     "Remises": ("remise.%",),
     "Frais et échéancier": ("frais.%", "echeancier.%"),
     "Utilisateurs": ("utilisateur.%",),
