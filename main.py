@@ -8,6 +8,8 @@ import traceback
 from datetime import datetime
 from pathlib import Path
 
+from edupaie.repositories.resume_repository import ResumeRepository
+from edupaie.services.resume_service import ResumeJourService
 from PySide6.QtGui import QIcon
 from edupaie.repositories.demarrage_repository import DemarrageRepository
 from edupaie.services.demarrage_service import DemarrageService
@@ -116,6 +118,7 @@ def main():
     frais = FraisService(FraisRepository(conn), auth)
     sauvegarde = SauvegardeService(auth)
     caisse = CaisseService(paiements, auth)
+    resume = ResumeJourService(caisse, ResumeRepository(conn), auth)
     remises = RemiseService(RemiseRepository(conn), eleves, paiements, auth)
     echeancier = EcheancierService(
         EcheanceRepository(conn), eleves, paiements, ContactRepository(conn), auth)
@@ -150,6 +153,7 @@ def main():
     importation_ui = audite(importation, audit_regles.regles_import())
     classes_ui = audite(gestion_classes, audit_regles.regles_classe())
     verif_ui = audite(verif, audit_regles.regles_verification())
+    resume_ui = audite(resume, audit_regles.regles_resume())
     annees_ui = audite(annees, audit_regles.regles_annee())
     licence_ui = audite(licence, audit_regles.regles_licence())
 
@@ -167,7 +171,7 @@ def main():
             caisse, remises_ui, echeancier_ui, ecole_ui, importation_ui,
             classe_service=classes_ui, journal_service=journal,
             verification_service=verif_ui, annee_service=annees_ui, licence_service=licence_ui,
-            guide_service=guide, demarrage_service=demarrage,
+            guide_service=guide, demarrage_service=demarrage, resume_service=resume_ui,
         )
         fenetre.resize(1180, 720)
         fenetre.showMaximized()

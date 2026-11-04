@@ -31,7 +31,7 @@ class MainWindow(QMainWindow):
                  remise_service=None, echeancier_service=None, ecole_service=None,
                  import_service=None, classe_service=None, journal_service=None,
                  verification_service=None, annee_service=None, licence_service=None,
-                 guide_service=None, demarrage_service=None):
+                guide_service=None, demarrage_service=None, resume_service=None):
         super().__init__()
         self.deconnexion = False  # True si on se déconnecte ou se verrouille
         nom_ecole = courant().nom
@@ -50,9 +50,10 @@ class MainWindow(QMainWindow):
         if echeancier_service is not None and auth.peut("impayes.voir"):
             self._ajouter_page("Impayés", ImpayesPage(echeancier_service))
         if caisse_service is not None and auth.peut("caisse.voir"):
-            self._ajouter_page("Clôture de caisse", CaissePage(caisse_service))
+            self._ajouter_page("Caisse", CaissePage(caisse_service, resume_service=resume_service))
         if annee_service is not None and auth.peut("annee.gerer"):
-            self._ajouter_page("Années scolaires", AnneePage(annee_service))
+            self._ajouter_page("Clôture de caisse",
+                               CaissePage(caisse_service, resume_service=resume_service))
         if classe_service is not None and auth.peut("classe.gerer"):
             self._ajouter_page("Classes", ClassesPage(classe_service))
         if frais_service is not None and auth.peut("frais.gerer"):
