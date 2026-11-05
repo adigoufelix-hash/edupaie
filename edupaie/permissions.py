@@ -12,6 +12,7 @@ PERMISSIONS = {
         "utilisateur.gerer", "frais.gerer", "sauvegarde.gerer",
         "caisse.voir", "caisse.toutes", "remise.gerer", "impayes.voir",
         "ecole.gerer", "classe.gerer", "audit.voir", "annee.gerer", "licence.gerer",
+        "recouvrement.voir",
     },
     COMPTABLE: {
         "eleve.lire", "eleve.ecrire",
@@ -27,7 +28,7 @@ PERMISSIONS = {
 # Permissions conservées quand la licence est expirée (mode consultation)
 SANS_LICENCE = {
     "eleve.lire", "paiement.lire", "dashboard.voir", "caisse.voir", "impayes.voir",
-    "audit.voir", "sauvegarde.gerer", "licence.gerer",
+    "audit.voir", "sauvegarde.gerer", "licence.gerer", "recouvrement.voir",
 }
 
 ROLES = tuple(PERMISSIONS)

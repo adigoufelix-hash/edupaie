@@ -53,6 +53,8 @@ from edupaie.ui.inactivite import DetecteurInactivite
 from edupaie.ui.login_dialog import LoginDialog
 from edupaie.ui.main_window import MainWindow
 from edupaie.ui.theme import style_pour
+from edupaie.repositories.recouvrement_repository import RecouvrementRepository
+from edupaie.services.recouvrement_service import RecouvrementService
 
 DELAI_INACTIVITE_MS = 5 * 60 * 1000  # 5 minutes
 
@@ -119,6 +121,7 @@ def main():
     sauvegarde = SauvegardeService(auth)
     caisse = CaisseService(paiements, auth)
     resume = ResumeJourService(caisse, ResumeRepository(conn), auth)
+    recouvrement = RecouvrementService(RecouvrementRepository(conn), auth)
     remises = RemiseService(RemiseRepository(conn), eleves, paiements, auth)
     echeancier = EcheancierService(
         EcheanceRepository(conn), eleves, paiements, ContactRepository(conn), auth)
@@ -172,6 +175,7 @@ def main():
             classe_service=classes_ui, journal_service=journal,
             verification_service=verif_ui, annee_service=annees_ui, licence_service=licence_ui,
             guide_service=guide, demarrage_service=demarrage, resume_service=resume_ui,
+            recouvrement_service=recouvrement,
         )
         fenetre.resize(1180, 720)
         fenetre.showMaximized()

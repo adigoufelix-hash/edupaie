@@ -11,7 +11,7 @@ ECRANS = {
     "impayes": "Impayés", "caisse": "Clôture de caisse", "annees": "Années scolaires",
     "classes": "Classes", "frais": "Classes et frais", "utilisateurs": "Utilisateurs",
     "journal": "Journal d'audit", "sauvegardes": "Sauvegardes", "licence": "Licence",
-    "parametres": "Paramètres", "guide": "Guide d'utilisation",
+    "parametres": "Paramètres", "guide": "Guide d'utilisation",  "recouvrement": "Recouvrement",
 }
 
 ORDRE_CATEGORIES = ["Pour commencer", "Au quotidien", "Élèves",
@@ -600,6 +600,37 @@ ARTICLES = [
         + "<p>Voir aussi " + _g("cloture", "Faire la clôture de caisse") + ".</p>",
         permission="caisse.voir", ecran="caisse",
         mots_cles="résumé whatsapp directeur rapport journée envoyer message comptable"),
+
+    Article(
+        "recouvrement", "Au quotidien", "Lire le tableau de recouvrement",
+        "<p>Le tableau de recouvrement montre où en est l'école dans l'encaissement des frais, "
+        "classe par classe puis mois par mois. Il est réservé à l'administrateur.</p>"
+        "<h3>Les quatre cartes du haut</h3>"
+        "<ul>"
+        "<li><b>Taux d'encaissement</b> : la part des frais déjà payée (encaissé divisé par "
+        "« à payer »). « À payer » est le total des frais moins les remises.</li>"
+        "<li><b>Reste à encaisser</b> : ce que les familles doivent encore.</li>"
+        "<li><b>Payé sur ce qui était dû</b> : parmi les sommes que l'échéancier demandait "
+        "déjà à la date choisie, la part qui a été payée. C'est le meilleur indicateur de "
+        "santé de la caisse.</li>"
+        "<li><b>En retard</b> : le montant exigible mais non payé, et le nombre d'élèves "
+        "concernés. C'est le même calcul que l'écran Impayés.</li>"
+        "</ul>"
+        "<h3>Par classe</h3>"
+        "<p>Chaque barre est <b>verte</b> à 80 % et plus, <b>orange</b> de 50 à 79 %, "
+        "<b>rouge</b> en dessous. La dernière ligne donne le total de l'école.</p>"
+        "<h3>Par mois</h3>"
+        "<p>« Prévu » est la somme des tranches de l'échéancier dont la date limite tombe ce "
+        "mois-là ; « Encaissé » est ce qui a été payé ce mois-là. Le taux du mois compare "
+        "les deux. Les mois futurs sont marqués « à venir ».</p>"
+        + _note("Change la date « Situation au » pour voir l'école à une date passée ou "
+                "future. Les classes sans échéancier apparaissent, mais sans prévu ni "
+                "retard : définis leur échéancier dans « Classes et frais ».")
+        + "<p>Voir aussi " + _g("impayes", "Suivre les impayés") + " et "
+        + _g("frais", "Frais et échéancier") + ".</p>",
+        permission="recouvrement.voir", ecran="recouvrement",
+        mots_cles="recouvrement taux encaissement classe mois prévu retard direction "
+                  "directeur statistiques"),
 ]
 
 
