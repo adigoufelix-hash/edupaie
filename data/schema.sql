@@ -149,3 +149,26 @@ CREATE TABLE IF NOT EXISTS passage (
     fait_par         TEXT,
     UNIQUE (eleve_ancien_id, annee_cible)
 );
+-- Lignes des relevés mobile money et leur rapprochement avec un paiement
+CREATE TABLE IF NOT EXISTS releve_mm (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    empreinte      TEXT    NOT NULL UNIQUE,  -- évite d'importer deux fois la même opération
+    operateur      TEXT    NOT NULL,
+    date_operation TEXT    NOT NULL,         -- AAAA-MM-JJ
+    montant        INTEGER NOT NULL CHECK (montant > 0),
+    reference      TEXT,                     -- n° de transaction
+    libelle        TEXT,                     -- expéditeur ou description
+    statut         TEXT    NOT NULL DEFAULT 'a_traiter'
+                   CHECK (statut IN ('a_traiter', 'rapproche', 'ignore')),
+    paiement_id    INTEGER REFERENCES paiement(id) ON DELETE SET NULL,
+    motif          TEXT,                     -- motif si l'opération est ignorée
+    traite_par     TEXT,
+    traite_le      TEXT,
+    importe_par    TEXT,
+    importe_le     TEXT    NOT NULL
+);
+
+-- Un paiement ne peut être rapproché que d'une seule ligne de relevé
+CREATE UNIQUE INDEX IF NOT EXISTS ux_releve_paiement
+    ON releve_mm(paiement_id) WHERE paiement_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_releve_date ON releve_mm(date_operation);

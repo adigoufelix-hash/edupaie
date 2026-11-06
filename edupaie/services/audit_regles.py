@@ -362,3 +362,40 @@ def regles_resume():
                           + ("enregistré" if resultat else "retiré")}
 
     return {"lien_whatsapp": Regle(lien), "definir_numero": Regle(numero)}
+
+def regles_rapprochement():
+    """Le journal ne garde que des totaux : jamais les noms ni les numéros du relevé."""
+    def _fr(iso):
+        annee, mois, jour = str(iso)[:10].split("-")
+        return f"{jour}/{mois}/{annee}"
+
+    def _fcfa(valeur):
+        return f"{int(valeur):,}".replace(",", " ") + " FCFA"
+
+    def importation(service, a, r, avant):
+        return {"action": "rapprochement.import",
+                "detail": f"Relevé {r['operateur']} importé : {r['importees']} opération(s), "
+                          f"{r['doublons']} déjà présente(s)"}
+
+    def lien(service, a, r, avant):
+        return {"action": "rapprochement.lien",
+                "detail": f"Opération du {_fr(r['date'])} ({_fcfa(r['montant'])}) rapprochée "
+                          f"du reçu {r['numero_recu']}"}
+
+    def auto(service, a, r, avant):
+        return {"action": "rapprochement.auto",
+                "detail": f"Rapprochement automatique : {r['rapproches']} opération(s)"}
+
+    def ignore(service, a, r, avant):
+        return {"action": "rapprochement.ignore",
+                "detail": f"Opération du {_fr(r['date'])} ({_fcfa(r['montant'])}) ignorée : "
+                          f"{r['motif']}"}
+
+    def defaire(service, a, r, avant):
+        return {"action": "rapprochement.defaire",
+                "detail": f"Rapprochement annulé : opération du {_fr(r['date'])} "
+                          f"({_fcfa(r['montant'])})"}
+
+    return {"importer": Regle(importation), "rapprocher": Regle(lien),
+            "rapprocher_automatiquement": Regle(auto), "ignorer": Regle(ignore),
+            "defaire": Regle(defaire)}

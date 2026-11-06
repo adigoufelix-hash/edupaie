@@ -21,6 +21,7 @@ from edupaie.ui.sauvegardes_page import SauvegardesPage
 from edupaie.ui.utilisateurs_page import UtilisateursPage
 from edupaie.ui.verification_page import VerificationPage
 from edupaie.ui.recouvrement_page import RecouvrementPage
+from edupaie.ui.rapprochement_page import RapprochementPage
 
 
 class MainWindow(QMainWindow):
@@ -33,7 +34,7 @@ class MainWindow(QMainWindow):
                  import_service=None, classe_service=None, journal_service=None,
                  verification_service=None, annee_service=None, licence_service=None,
                  guide_service=None, demarrage_service=None, resume_service=None,
-                 recouvrement_service=None,):
+                recouvrement_service=None, rapprochement_service=None):
         super().__init__()
         self.deconnexion = False  # True si on se déconnecte ou se verrouille
         nom_ecole = courant().nom
@@ -53,6 +54,8 @@ class MainWindow(QMainWindow):
             self._ajouter_page("Impayés", ImpayesPage(echeancier_service))
         if recouvrement_service is not None and auth.peut("recouvrement.voir"):
             self._ajouter_page("Recouvrement", RecouvrementPage(recouvrement_service))
+        if rapprochement_service is not None and auth.peut("rapprochement.gerer"):
+            self._ajouter_page("Rapprochement", RapprochementPage(rapprochement_service))
         if caisse_service is not None and auth.peut("caisse.voir"):
             self._ajouter_page("Caisse", CaissePage(caisse_service, resume_service=resume_service))
         if annee_service is not None and auth.peut("annee.gerer"):

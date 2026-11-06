@@ -55,7 +55,8 @@ from edupaie.ui.main_window import MainWindow
 from edupaie.ui.theme import style_pour
 from edupaie.repositories.recouvrement_repository import RecouvrementRepository
 from edupaie.services.recouvrement_service import RecouvrementService
-
+from edupaie.repositories.rapprochement_repository import RapprochementRepository
+from edupaie.services.rapprochement_service import RapprochementService
 DELAI_INACTIVITE_MS = 5 * 60 * 1000  # 5 minutes
 
 
@@ -122,6 +123,7 @@ def main():
     caisse = CaisseService(paiements, auth)
     resume = ResumeJourService(caisse, ResumeRepository(conn), auth)
     recouvrement = RecouvrementService(RecouvrementRepository(conn), auth)
+    rapprochement = RapprochementService(RapprochementRepository(conn), auth)
     remises = RemiseService(RemiseRepository(conn), eleves, paiements, auth)
     echeancier = EcheancierService(
         EcheanceRepository(conn), eleves, paiements, ContactRepository(conn), auth)
@@ -157,6 +159,7 @@ def main():
     classes_ui = audite(gestion_classes, audit_regles.regles_classe())
     verif_ui = audite(verif, audit_regles.regles_verification())
     resume_ui = audite(resume, audit_regles.regles_resume())
+    rapprochement_ui = audite(rapprochement, audit_regles.regles_rapprochement())
     annees_ui = audite(annees, audit_regles.regles_annee())
     licence_ui = audite(licence, audit_regles.regles_licence())
 
@@ -175,7 +178,7 @@ def main():
             classe_service=classes_ui, journal_service=journal,
             verification_service=verif_ui, annee_service=annees_ui, licence_service=licence_ui,
             guide_service=guide, demarrage_service=demarrage, resume_service=resume_ui,
-            recouvrement_service=recouvrement,
+            recouvrement_service=recouvrement, rapprochement_service=rapprochement_ui,
         )
         fenetre.resize(1180, 720)
         fenetre.showMaximized()

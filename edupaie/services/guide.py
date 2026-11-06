@@ -12,6 +12,7 @@ ECRANS = {
     "classes": "Classes", "frais": "Classes et frais", "utilisateurs": "Utilisateurs",
     "journal": "Journal d'audit", "sauvegardes": "Sauvegardes", "licence": "Licence",
     "parametres": "Paramètres", "guide": "Guide d'utilisation",  "recouvrement": "Recouvrement",
+    "rapprochement": "Rapprochement",
 }
 
 ORDRE_CATEGORIES = ["Pour commencer", "Au quotidien", "Élèves",
@@ -631,6 +632,49 @@ ARTICLES = [
         permission="recouvrement.voir", ecran="recouvrement",
         mots_cles="recouvrement taux encaissement classe mois prévu retard direction "
                   "directeur statistiques"),
+
+    Article(
+        "rapprochement", "Au quotidien", "Rapprocher le relevé mobile money",
+        "<p>Le rapprochement compare le relevé de ton compte mobile money (Flooz ou T-Money) "
+        "avec les paiements « mobile money » enregistrés dans EduPaie. Il repère l'argent "
+        "arrivé sans paiement saisi, et les paiements saisis dont l'argent n'est jamais "
+        "arrivé. Réservé à l'administrateur.</p>"
+        "<ol>"
+        "<li>Demande à l'opérateur le <b>relevé du compte</b> de l'école en Excel (.xlsx) ou "
+        "CSV.</li>"
+        "<li>Écran Rapprochement → « Importer un relevé... », choisis le fichier. EduPaie "
+        "devine les colonnes : vérifie la <b>date</b> et le <b>montant reçu</b> (pas un "
+        "débit), puis importe. Un relevé déjà importé ne crée pas de doublons.</li>"
+        "<li>Clique sur « Rapprocher automatiquement » : les correspondances sûres (un seul "
+        "paiement du même montant, à 2 jours près) sont liées.</li>"
+        "<li>Traite le reste ligne par ligne (voir ci-dessous).</li>"
+        "<li>Ouvre l'onglet « Paiements sans trace » : ce sont les paiements à contrôler en "
+        "priorité.</li>"
+        "</ol>"
+        "<h3>Les états</h3>"
+        "<ul>"
+        "<li><b>Correspondance sûre</b> : un seul paiement possible, rapproché automatiquement.</li>"
+        "<li><b>Correspondance probable</b> : plusieurs paiements possibles. « Valider la "
+        "proposition » accepte le plus proche, « Choisir le paiement... » te laisse "
+        "décider.</li>"
+        "<li><b>Sans paiement enregistré</b> : de l'argent est arrivé mais aucun paiement "
+        "correspondant n'est saisi. Un paiement a peut-être été oublié, ou saisi avec un "
+        "autre montant. Sinon, « Ignorer... » avec un motif (virement personnel, par "
+        "exemple).</li>"
+        "<li><b>Paiement annulé !</b> : une opération rapprochée dont le paiement a été annulé "
+        "ensuite : à vérifier.</li>"
+        "</ul>"
+        + _attention("Le rapprochement se fait sur le <b>montant exact</b> et la <b>date</b> "
+                     "(2 jours d'écart au plus), pas sur le nom : un paiement dont le montant "
+                     "est différent de celui du relevé ne sera jamais rapproché, il apparaît "
+                     "« sans trace ».")
+        + _note("Fais le rapprochement une fois par semaine. « Exporter en Excel » donne le "
+                "relevé complet, les paiements sans trace et un résumé. Le relevé contient des "
+                "informations personnelles : range le fichier d'origine à l'abri.")
+        + "<p>Voir aussi " + _g("cloture", "Faire la clôture de caisse") + ".</p>",
+        permission="rapprochement.gerer", ecran="rapprochement",
+        mots_cles="rapprochement mobile money flooz tmoney relevé compte opérateur écart "
+                  "contrôle fraude paiement sans trace"),
 ]
 
 

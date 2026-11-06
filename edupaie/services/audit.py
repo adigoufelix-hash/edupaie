@@ -50,12 +50,17 @@ LIBELLES = {
     "licence.echec": "Activation de licence refusée",
     "caisse.resume": "Résumé de caisse préparé pour WhatsApp",
     "caisse.numero": "Numéro WhatsApp de la direction modifié",
+    "rapprochement.import": "Relevé mobile money importé",
+    "rapprochement.lien": "Opération du relevé rapprochée d'un paiement",
+    "rapprochement.auto": "Rapprochement automatique",
+    "rapprochement.ignore": "Opération du relevé ignorée",
+    "rapprochement.defaire": "Rapprochement annulé",
 }
 
 CATEGORIES = {
     "Connexions": ("connexion", "echec_connexion", "blocage_connexion"),
     "Élèves": ("eleve.%", "contact.%", "classe.%"),
-    "Paiements": ("paiement.%", "caisse.%"),
+    "Paiements": ("paiement.%", "caisse.%", "rapprochement.%"),
     "Remises": ("remise.%",),
     "Frais et échéancier": ("frais.%", "echeancier.%"),
     "Utilisateurs": ("utilisateur.%",),
@@ -68,7 +73,7 @@ SENSIBLES = {
     "echec_connexion", "blocage_connexion", "eleve.suppression", "paiement.annulation",
     "remise.annulee", "utilisateur.suppression", "utilisateur.mdp_reinitialise",
     "sauvegarde.restauration", "recu.alerte","utilisateur.recuperation", "utilisateur.recuperation_echec",
-    "licence.echec"
+    "licence.echec", "rapprochement.ignore", "rapprochement.defaire" ,
 }
 
 # apres(service, arguments, resultat, avant) -> dict ou None
