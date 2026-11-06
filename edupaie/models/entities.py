@@ -25,6 +25,7 @@ class Paiement:
         motif_annulation: str | None = None
         annule_par: str | None = None
         annule_le: str | None = None
+        reference: str | None = None
 
 @dataclass
 class AnneeScolaire:

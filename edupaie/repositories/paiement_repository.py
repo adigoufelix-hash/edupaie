@@ -1,5 +1,6 @@
 import sqlite3
 from edupaie.models.entities import Paiement
+from edupaie import references
 
 
 class PaiementRepository:
@@ -19,6 +20,7 @@ class PaiementRepository:
             motif_annulation=row["motif_annulation"],
             annule_par=row["annule_par"],
             annule_le=row["annule_le"],
+            reference=row["reference"] if "reference" in row.keys() else None,
         )
 
     def ajouter(self, p: Paiement) -> int:
@@ -27,10 +29,10 @@ class PaiementRepository:
             cur = self.conn.execute(
                 """INSERT INTO paiement
                    (eleve_id, montant, date_paiement, mode, solde_apres,
-                    utilisateur_id, encaisse_par)
-                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                    utilisateur_id, encaisse_par, reference)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                 (p.eleve_id, p.montant, p.date_paiement, p.mode, p.solde_apres,
-                 p.utilisateur_id, p.encaisse_par),
+                 p.utilisateur_id, p.encaisse_par, p.reference),
             )
             paiement_id = cur.lastrowid
             numero = f"REC-{p.date_paiement[:4]}-{paiement_id:06d}"
@@ -39,6 +41,14 @@ class PaiementRepository:
                 (numero, paiement_id),
             )
         return paiement_id
+    
+    def reference_utilisee(self, cle: str, mode: str) -> bool:
+        """True si un paiement valide du même mode porte déjà ce numéro (comparé sans
+        majuscules ni séparateurs)."""
+        lignes = self.conn.execute(
+            "SELECT reference FROM paiement "
+            "WHERE reference IS NOT NULL AND annule = 0 AND mode = ?", (mode,)).fetchall()
+        return any(references.normaliser(ligne[0]) == cle for ligne in lignes)
 
     def annuler(self, paiement_id: int, motif: str, par: str | None, quand: str) -> None:
         """Marque le paiement annulé (jamais supprimé) et recalcule les soldes."""

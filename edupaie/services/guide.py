@@ -110,13 +110,20 @@ ARTICLES = [
         "<li>Sélectionne-le et clique sur « Enregistrer un paiement » (ou ouvre sa "
         "fiche).</li>"
         "<li>Saisis le <b>montant</b>, la <b>date</b> et le <b>mode</b> : espèces, chèque, "
-        "virement ou mobile money.</li>"
+        "virement ou mobile money. Pour un mobile money, recopie aussi le <b>n° de "
+        "transaction</b> du SMS de confirmation.</li>"
         "<li>Valide : le paiement est enregistré, le solde et le statut sont mis à jour, "
         "et un reçu numéroté (REC-année-numéro) est créé.</li>"
         "</ol>"
         + _attention("Le montant doit être un nombre entier, ne peut pas dépasser le solde "
                      "restant, et la date ne peut pas être dans le futur. Un élève déjà "
                      "soldé n'accepte plus de paiement.")
+
+        + _note("Pour un paiement mobile money, recopie le <b>n° de transaction</b> du SMS de "
+                "confirmation. Un même numéro ne peut justifier qu'un seul encaissement, et il "
+                "permet de rapprocher le paiement du relevé de l'opérateur sans aucune "
+                "ambiguïté. Pour un chèque ou un virement, c'est le numéro du chèque ou du "
+                "virement (facultatif).")
         + "<p>Une erreur de saisie ? Voir " + _g("annuler_paiement", "Annuler un paiement")
         + ".</p>",
         permission="paiement.encaisser", ecran="eleves",
@@ -653,7 +660,13 @@ ARTICLES = [
         "</ol>"
         "<h3>Les états</h3>"
         "<ul>"
-        "<li><b>Correspondance sûre</b> : un seul paiement possible, rapproché automatiquement.</li>"
+        "<li><b>Correspondance exacte</b> : même n° de transaction et même montant, rapproché "
+        "automatiquement.</li>"
+        "<li><b>Montant différent !</b> : le relevé et un paiement ont le même n° de "
+        "transaction mais pas le même montant. C'est une erreur de saisie à corriger, ou une "
+        "anomalie à vérifier auprès du caissier.</li>"
+        "<li><b>Correspondance sûre</b> : sans numéro, un seul paiement possible de même "
+        "montant et de même date, rapproché automatiquement.</li>"
         "<li><b>Correspondance probable</b> : plusieurs paiements possibles. « Valider la "
         "proposition » accepte le plus proche, « Choisir le paiement... » te laisse "
         "décider.</li>"

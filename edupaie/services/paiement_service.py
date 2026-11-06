@@ -2,6 +2,7 @@ from dataclasses import dataclass, replace
 from datetime import date, datetime
 
 from edupaie.models.entities import Paiement
+from edupaie import references
 
 MODES = ("especes", "cheque", "virement", "mobile_money")
 STATUT_SOLDE = "Soldé"
@@ -85,7 +86,8 @@ class PaiementService:
                 resultat.append((eleve, sit))
         return resultat
 
-    def enregistrer_paiement(self, eleve_id, montant, date_paiement, mode) -> Paiement:
+    def enregistrer_paiement(self, eleve_id, montant, date_paiement, mode,
+                             reference=None) -> Paiement:
         utilisateur = None
         if self.auth is not None:
             if not self.auth.peut("paiement.encaisser"):
@@ -98,6 +100,14 @@ class PaiementService:
         date_paiement = self._valider_date(date_paiement)
         if mode not in MODES:
             raise ErreurMetier("Mode de paiement invalide.")
+        try:  # le numéro n'a de sens que pour un paiement qui laisse une trace
+            reference = references.nettoyer(reference) if mode != "especes" else None
+        except ValueError as e:
+            raise ErreurMetier(str(e)) from None
+        if reference and self.paiements.reference_utilisee(references.normaliser(reference), mode):
+            raise ErreurMetier(
+                "Ce numéro de transaction est déjà enregistré sur un autre paiement : un "
+                "même numéro ne peut justifier qu'un seul encaissement.")
 
         sit = self.situation(eleve_id)
         if sit.solde == 0:
@@ -110,6 +120,7 @@ class PaiementService:
             None, eleve_id, None, montant, date_paiement, mode, sit.solde - montant,
             utilisateur["id"] if utilisateur else None,
             utilisateur["nom_complet"] if utilisateur else None,
+            reference=reference,
         )
         paiement_id = self.paiements.ajouter(p)
         return self.paiements.obtenir(paiement_id)  # avec son numéro de reçu

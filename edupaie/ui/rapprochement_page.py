@@ -15,8 +15,9 @@ from edupaie.ui.fichiers import apres_export
 from edupaie.ui.paiement_dialog import fcfa
 from edupaie.ui.style import preparer_table
 
-COULEURS = {"rapproche": "#166534", "alerte": "#991b1b", "propose_sur": "#1d4ed8",
-            "propose_probable": "#9a3412", "sans_paiement": "#991b1b", "ignore": "#6b7280"}
+COULEURS = {"rapproche": "#166534", "alerte": "#991b1b", "propose_ref": "#166534",
+            "propose_sur": "#1d4ed8", "propose_probable": "#9a3412",
+            "ecart": "#991b1b", "sans_paiement": "#991b1b", "ignore": "#6b7280"}
 
 
 def date_fr(iso):
@@ -362,7 +363,8 @@ class RapprochementPage(QWidget):
         return self.analyse["lignes"][ligne]
 
     def _a_traiter(self, ligne):
-        if ligne["etat"] in ("propose_sur", "propose_probable", "sans_paiement"):
+        if ligne["etat"] in ("propose_ref", "propose_sur", "propose_probable", "ecart",
+                             "sans_paiement"):
             return True
         QMessageBox.information(self, "Rapprochement",
                                 "Cette opération est déjà traitée : annule d'abord son "
@@ -445,7 +447,7 @@ class RapprochementPage(QWidget):
         ligne = self._selection()
         if ligne is None:
             return
-        if ligne["etat"] not in ("rapproche", "alerte", "ignore"):
+        if ligne["etat"] not in ("rapproche", "alerte", "ignore", "ecart"):
             QMessageBox.information(self, "Rapprochement",
                                     "Cette opération n'est ni rapprochée ni ignorée.")
             return

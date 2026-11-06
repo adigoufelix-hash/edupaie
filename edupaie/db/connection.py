@@ -29,6 +29,7 @@ MIGRATIONS = {
         "motif_annulation": "TEXT",
         "annule_par": "TEXT",
         "annule_le": "TEXT",
+        "reference": "TEXT",
     },
     "ecole": {
         "couleur": "TEXT",

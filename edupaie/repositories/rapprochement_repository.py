@@ -45,8 +45,8 @@ class RapprochementRepository:
     def paiements_mm(self, debut, fin):
         """Paiements mobile money valides de la période, avec « lie » = déjà rapproché."""
         return self.conn.execute(
-            """SELECT p.id, p.numero_recu, p.montant, p.date_paiement, p.encaisse_par,
-                      e.nom, e.prenom, e.classe,
+            """SELECT p.id, p.numero_recu, p.montant, p.date_paiement, p.encaisse_par, p.reference,
+                      e.nom, e.prenom, e.classe, p.reference,
                       EXISTS (SELECT 1 FROM releve_mm l WHERE l.paiement_id = p.id) AS lie
                FROM paiement p JOIN eleve e ON e.id = p.eleve_id
                WHERE p.mode = 'mobile_money' AND p.annule = 0
@@ -55,7 +55,7 @@ class RapprochementRepository:
 
     def paiement(self, paiement_id):
         return self.conn.execute(
-            """SELECT p.id, p.numero_recu, p.montant, p.mode, p.annule,
+            """SELECT p.id, p.numero_recu, p.montant, p.mode, p.annule, p.reference,
                       EXISTS (SELECT 1 FROM releve_mm l WHERE l.paiement_id = p.id) AS lie
                FROM paiement p WHERE p.id = ?""", (paiement_id,)).fetchone()
 

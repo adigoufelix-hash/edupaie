@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS paiement (
                    CHECK (mode IN ('especes','cheque','virement','mobile_money')),
     solde_apres    INTEGER NOT NULL CHECK (solde_apres >= 0),
     utilisateur_id INTEGER REFERENCES utilisateur(id) ON DELETE SET NULL,
+    reference        TEXT,   -- n° de transaction (mobile money), de chèque ou de virement
     encaisse_par   TEXT,   -- nom du caissier au moment du paiement
     annule           INTEGER NOT NULL DEFAULT 0,
     motif_annulation TEXT,

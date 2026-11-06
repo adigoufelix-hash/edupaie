@@ -30,9 +30,10 @@ def exporter_rapprochement(analyse, dossier) -> Path:
 
     ws2 = wb.create_sheet("Sans trace")
     colonnes2 = [("Reçu", "texte"), ("Date du paiement", "date"), ("Montant (FCFA)", "montant"),
-                 ("Élève", "texte"), ("Classe", "texte"), ("Caissier", "texte")]
+                 ("Élève", "texte"), ("Classe", "texte"), ("Caissier", "texte"),
+                 ("N° de transaction", "texte")]
     lignes2 = [[p["numero_recu"], _date(p["date_paiement"]), p["montant"], p["eleve"],
-                p["classe"], p["caissier"]] for p in analyse["sans_trace"]]
+                p["classe"], p["caissier"], p["reference"]] for p in analyse["sans_trace"]]
     _ecrire(ws2, colonnes2, lignes2)
 
     r = analyse["resume"]

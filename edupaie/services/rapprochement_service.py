@@ -2,6 +2,7 @@ import hashlib
 import sqlite3
 from datetime import date, datetime, timedelta
 
+from edupaie import references
 from edupaie.services import releve_import
 from edupaie.services.paiement_service import ErreurMetier
 
@@ -10,9 +11,13 @@ PORTEE_CHOIX = 10    # fenêtre de la recherche manuelle d'un paiement
 OPERATEURS = ("Flooz", "T-Money", "Autre")
 ETATS = {
     "rapproche": "Rapproché", "alerte": "Paiement annulé !",
+    "propose_ref": "Correspondance exacte (n° de transaction)",
     "propose_sur": "Correspondance sûre", "propose_probable": "Correspondance probable",
+    "ecart": "Montant différent !",
     "sans_paiement": "Sans paiement enregistré", "ignore": "Ignoré",
 }
+ETAT_PAR_CERTITUDE = {"reference": "propose_ref", "sure": "propose_sur",
+                      "probable": "propose_probable", "ecart": "ecart"}
 
 
 def _fcfa(valeur) -> str:
@@ -21,6 +26,12 @@ def _fcfa(valeur) -> str:
 
 def _eleve(ligne) -> str:
     return f"{ligne['nom']} {ligne['prenom']}"
+
+
+def _compatibles(reference_releve, reference_paiement) -> bool:
+    """Faux seulement si les deux ont un numéro de transaction et que ce n'est pas le même."""
+    a, b = references.normaliser(reference_releve), references.normaliser(reference_paiement)
+    return not (a and b and a != b)
 
 
 class RapprochementService:
@@ -87,12 +98,33 @@ class RapprochementService:
                     - date.fromisoformat(paiement["date_paiement"])).days)
 
     def _proposer(self, lignes, libres):
-        """{id de la ligne : (paiement, 'sure' ou 'probable', nombre de candidats)}."""
+        """{id de la ligne : (paiement, certitude, nombre de candidats)}.
+        certitude : 'reference' (même n° de transaction et même montant), 'ecart' (même n°
+        mais montant différent), 'sure' ou 'probable' (montant et date)."""
         pris, resultat = set(), {}
 
+        # 1. Même n° de transaction : c'est la même opération
+        par_numero = {}
+        for p in libres:
+            cle = references.normaliser(p.get("reference"))
+            if cle:
+                par_numero.setdefault(cle, []).append(p)
+        for ligne in lignes:
+            cle = references.normaliser(ligne["reference"])
+            for p in par_numero.get(cle, []) if cle else []:
+                if p["id"] in pris:
+                    continue
+                certitude = "reference" if p["montant"] == ligne["montant"] else "ecart"
+                resultat[ligne["id"]] = (p, certitude, 1)
+                pris.add(p["id"])
+                break
+
+        # 2. Sans numéro en commun : montant exact et date proche
         def candidats(ligne):
-            return [p for p in libres if p["id"] not in pris and p["montant"] == ligne["montant"]
-                    and self._ecart(ligne, p) <= TOLERANCE_JOURS]
+            return [p for p in libres
+                    if p["id"] not in pris and p["montant"] == ligne["montant"]
+                    and self._ecart(ligne, p) <= TOLERANCE_JOURS
+                    and _compatibles(ligne["reference"], p.get("reference"))]
 
         for passe in (1, 2):
             for ligne in lignes:
@@ -139,15 +171,17 @@ class RapprochementService:
                 sortie["proposition"] = {
                     "paiement_id": p["id"], "certitude": certitude, "alternatives": nombre - 1,
                     "numero_recu": p["numero_recu"], "eleve": _eleve(p), "classe": p["classe"],
-                    "date_paiement": p["date_paiement"], "caissier": p["encaisse_par"] or ""}
-                sortie["etat"] = "propose_sur" if certitude == "sure" else "propose_probable"
+                    "date_paiement": p["date_paiement"], "caissier": p["encaisse_par"] or "",
+                    "reference": p.get("reference") or "", "montant": p["montant"]}
+                sortie["etat"] = ETAT_PAR_CERTITUDE[certitude]
             else:
                 sortie["etat"] = "sans_paiement"
             sorties.append(sortie)
 
         sans_trace = [{"id": p["id"], "numero_recu": p["numero_recu"], "eleve": _eleve(p),
                        "classe": p["classe"], "date_paiement": p["date_paiement"],
-                       "montant": p["montant"], "caissier": p["encaisse_par"] or ""}
+                       "montant": p["montant"], "caissier": p["encaisse_par"] or "",
+                       "reference": p.get("reference") or ""}
                       for p in libres
                       if p["id"] not in proposes
                       and d.isoformat() <= p["date_paiement"] <= f.isoformat()]
@@ -160,8 +194,9 @@ class RapprochementService:
 
         valables = [s for s in sorties if s["etat"] != "ignore"]
         nb_rapproche, montant_rapproche = total(("rapproche", "alerte"))
-        nb_propose, _ = total(("propose_sur", "propose_probable"))
-        nb_sans, montant_sans = total(("sans_paiement",))
+        nb_propose, _ = total(("propose_ref", "propose_sur", "propose_probable"))
+        # un montant qui ne correspond à aucun paiement compte comme « sans paiement »
+        nb_sans, montant_sans = total(("sans_paiement", "ecart"))
         nb_ignore, montant_ignore = total(("ignore",))
         resume = {
             "nb_lignes": len(valables), "montant_releve": sum(s["montant"] for s in valables),
@@ -187,11 +222,13 @@ class RapprochementService:
         jour, marge = date.fromisoformat(ligne["date_operation"]), timedelta(days=PORTEE_CHOIX)
         choisis = [dict(p) for p in self.repo.paiements_mm(
             (jour - marge).isoformat(), (jour + marge).isoformat())
-            if not p["lie"] and p["montant"] == ligne["montant"]]
+            if not p["lie"] and p["montant"] == ligne["montant"]
+            and _compatibles(ligne["reference"], p["reference"])]
         choisis.sort(key=lambda p: (self._ecart(ligne, p), p["id"]))
         return [{"id": p["id"], "numero_recu": p["numero_recu"], "date_paiement": p["date_paiement"],
                  "montant": p["montant"], "eleve": _eleve(p), "classe": p["classe"],
-                 "caissier": p["encaisse_par"] or ""} for p in choisis]
+                 "caissier": p["encaisse_par"] or "", "reference": p["reference"] or ""}
+                for p in choisis]
 
     # --- Actions --------------------------------------------------------------------------------
     def rapprocher(self, ligne_id, paiement_id) -> dict:
@@ -206,6 +243,9 @@ class RapprochementService:
             raise ErreurMetier("Ce paiement est annulé.")
         if paiement["lie"]:
             raise ErreurMetier("Ce paiement est déjà rapproché d'une autre opération du relevé.")
+        if not _compatibles(ligne["reference"], paiement["reference"]):
+            raise ErreurMetier(f"Les numéros de transaction diffèrent : relevé "
+                               f"{ligne['reference']}, paiement {paiement['reference']}.")
         if paiement["montant"] != ligne["montant"]:
             raise ErreurMetier(f"Les montants diffèrent : relevé {_fcfa(ligne['montant'])}, "
                                f"paiement {_fcfa(paiement['montant'])}.")
@@ -218,10 +258,10 @@ class RapprochementService:
                 "numero_recu": paiement["numero_recu"]}
 
     def rapprocher_automatiquement(self, debut, fin) -> dict:
-        """Rapproche uniquement les correspondances sûres ; les probables restent à valider."""
+        """Rapproche les correspondances exactes et sûres ; les probables restent à valider."""
         analyse = self.analyser(debut, fin)
         liens = [(l["id"], l["proposition"]["paiement_id"]) for l in analyse["lignes"]
-                 if l["proposition"] and l["proposition"]["certitude"] == "sure"]
+                 if l["proposition"] and l["proposition"]["certitude"] in ("reference", "sure")]
         if liens:
             try:
                 self.repo.lier_plusieurs(liens, self._qui(), self._quand())
