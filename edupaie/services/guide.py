@@ -139,8 +139,9 @@ ARTICLES = [
         "<li>Le reçu s'ouvre en PDF : imprime-le ou enregistre-le.</li>"
         "</ol>"
         "<p>Le reçu indique l'école (nom, logo, adresse), l'élève, le montant, la date, le "
-        "mode, le solde restant, le caissier, un <b>QR code</b> et un <b>code de "
-        "contrôle</b>. Un paiement annulé porte la mention « REÇU ANNULÉ ».</p>"
+        "mode, le <b>n° de transaction</b> (mobile money, chèque ou virement), le solde "
+        "restant, le caissier, un <b>QR code</b> et un <b>code de contrôle</b>. Un "
+        "paiement annulé porte la mention « REÇU ANNULÉ ».</p>"
         + _note("On ne modifie jamais un reçu : en cas d'erreur, on annule le paiement et "
                 "on en saisit un nouveau."),
         permission="paiement.lire", ecran="eleves",
@@ -267,6 +268,8 @@ ARTICLES = [
         "<ul>"
         "<li><b>Enregistrer un paiement</b> et <b>Voir / imprimer le reçu</b> (aussi par "
         "double-clic sur un paiement).</li>"
+        "<li>La dernière colonne de l'historique donne le <b>n° de transaction</b> (mobile "
+        "money), du chèque ou du virement.</li>"
         "<li>Une ligne barrée « ANNULÉ » est un paiement annulé : survole-la pour voir qui "
         "l'a annulé et pourquoi.</li>"
         "<li><b>Contact du parent</b> : nom et téléphone du parent ou tuteur, utilisés "

@@ -53,7 +53,7 @@ class FicheEleveDialog(QDialog):
             cartes.addWidget(carte, 1)
 
         self.table = _table(["N° de reçu", "Date", "Mode", "Montant", "Solde après",
-                             "Encaissé par", "État"])
+                             "Encaissé par", "État", "N° de transaction"])
         self.vide = QLabel("Aucun paiement enregistré pour cet élève.")
         self.vide.setObjectName("sousTitre")
         self.vide.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -145,7 +145,8 @@ class FicheEleveDialog(QDialog):
                        LIBELLES_MODES.get(p.mode, p.mode),
                        fcfa(p.montant), fcfa(p.solde_apres),
                        p.encaisse_par or "-",
-                       "ANNULÉ" if p.annule else "Valide"]
+                       "ANNULÉ" if p.annule else "Valide",
+                       p.reference or "-"]
             for col, texte_cellule in enumerate(valeurs):
                 item = QTableWidgetItem(texte_cellule)
                 if p.annule:

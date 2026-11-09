@@ -12,6 +12,12 @@ MODES = {
     "virement": "Virement",
     "mobile_money": "Mobile money",
 }
+# Libellé du numéro imprimé sur le reçu, selon le mode de paiement
+REFERENCES = {
+    "mobile_money": "Réf. transaction",
+    "cheque": "N° du chèque",
+    "virement": "N° du virement",
+}
 
 MARINE = (30, 27, 75)
 INDIGO = (79, 70, 229)
@@ -105,6 +111,12 @@ def generer_recu_pdf(eleve, paiement, dossier, ecole=None) -> Path:
         pdf.set_draw_color(*BORDURE)
         pdf.line(12, y + 8, 136, y + 8)
         y += 9
+
+    # Numéro de transaction, de chèque ou de virement : le parent peut le comparer à son SMS
+    if paiement.reference and paiement.mode in REFERENCES:
+        texte, taille = adapter(
+            pdf, f"{REFERENCES[paiement.mode]} : {paiement.reference}", 96, 7.5, 5, style="")
+        _texte(pdf, 40, 177, 96, 4.5, texte, taille, False, GRIS, "C")
 
     # Pastille de statut
     if paiement.annule:

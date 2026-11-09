@@ -3,7 +3,10 @@ import unittest
 from datetime import datetime
 
 from edupaie import references
-from edupaie.models.entities import Eleve
+import tempfile
+
+from edupaie.models.entities import Eleve, Paiement
+from edupaie.services.recu_pdf import generer_recu_pdf
 from edupaie.repositories.eleve_repository import EleveRepository
 from edupaie.repositories.paiement_repository import PaiementRepository
 from edupaie.repositories.rapprochement_repository import RapprochementRepository
@@ -129,6 +132,19 @@ class TestPaiementAvecReference(unittest.TestCase):
                          ["rapproche"] * 3)
         self.assertEqual((etats["TXC333"], etats["TXZ999"]), ("ecart", "sans_paiement"))
 
+class TestRecuAvecReference(unittest.TestCase):
+    def test_le_recu_se_genere_avec_ou_sans_numero(self):
+        eleve = Eleve(1, "Ama", "Ayivi", "6e A", "2026-2027", 100000)
+        cas = (("mobile_money", "MP260105.1234.A1B2"), ("mobile_money", "M" * 40),
+               ("cheque", "CHQ-0042"), ("virement", "VIR 2026 11 03"),
+               ("especes", None), ("mobile_money", None))
+        with tempfile.TemporaryDirectory() as tmp:
+            for i, (mode, reference) in enumerate(cas, start=1):
+                paiement = Paiement(i, 1, f"REC-2026-{i:06d}", 10000, "2026-11-03", mode,
+                                    90000, None, "Kossi Mensah", reference=reference)
+                chemin = generer_recu_pdf(eleve, paiement, tmp)
+                self.assertTrue(chemin.exists(), mode)
+                self.assertGreater(chemin.stat().st_size, 1000)
 
 if __name__ == "__main__":
     unittest.main()
