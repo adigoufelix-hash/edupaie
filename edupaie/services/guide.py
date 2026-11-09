@@ -194,7 +194,9 @@ ARTICLES = [
         "<li>Lis le tableau : un caissier par ligne, une colonne par mode, le total en "
         "bas.</li>"
         "<li>« Exporter en PDF » produit la feuille à signer (visa du caissier et de la "
-        "direction) ; « Exporter en Excel » donne le détail paiement par paiement.</li>"
+        "direction) ; « Exporter en Excel » donne le détail paiement par paiement, avec le "
+        "n° de transaction des paiements mobile money, pour les recouper avec le relevé de "
+        "l'opérateur.</li>"
         "</ol>"
         "<p>L'administrateur voit tous les caissiers ; un comptable ne voit que ses propres "
         "encaissements. Les paiements annulés sont signalés mais ne sont pas comptés.</p>",

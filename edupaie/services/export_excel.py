@@ -20,6 +20,13 @@ def _chemin(dossier, prefixe) -> Path:
 def _date(valeur):
     return date.fromisoformat(valeur[:10]) if valeur else None
 
+def _reference(paiement):
+    """N° de transaction d'un paiement, vide s'il n'en a pas (ou si la ligne n'a pas la colonne)."""
+    try:
+        return paiement["reference"] or ""
+    except (KeyError, IndexError):
+        return ""
+
 
 def _cellule(ws, ligne, colonne, valeur, genre):
     if genre == "texte":
@@ -122,14 +129,15 @@ def exporter_cloture(cloture, dossier) -> Path:
     colonnes_d = [("N° de reçu", "texte"), ("Date", "date"), ("Élève", "texte"),
                   ("Classe", "texte"), ("Mode", "texte"), ("Montant (FCFA)", "montant"),
                   ("Caissier", "texte"), ("État", "texte"),
-                  ("Motif d'annulation", "texte")]
+                  ("Motif d'annulation", "texte"), ("N° de transaction", "texte")]
     paiements = ([p for c in cloture["caissiers"] for p in c["paiements"]]
                  + list(cloture["annules"]["paiements"]))
     paiements.sort(key=lambda p: (p["date_paiement"], p["numero_recu"] or ""))
     lignes_d = [[p["numero_recu"], _date(p["date_paiement"]), f"{p['nom']} {p['prenom']}",
                  p["classe"], MODES.get(p["mode"], p["mode"]), p["montant"],
                  p["encaisse_par"] or "Non renseigné",
-                 "Annulé" if p["annule"] else "Valide", p["motif_annulation"] or ""]
+                 "Annulé" if p["annule"] else "Valide", p["motif_annulation"] or "",
+                 _reference(p)]
                 for p in paiements]
     _ecrire(detail, colonnes_d, lignes_d)
     chemin = _chemin(dossier, f"cloture_{cloture['debut']}_{cloture['fin']}")

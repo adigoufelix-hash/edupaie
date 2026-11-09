@@ -14,6 +14,10 @@ from edupaie.repositories.utilisateur_repository import UtilisateurRepository
 from edupaie.services.auth_service import AuthService
 from edupaie.services.paiement_service import ErreurMetier, PaiementService
 from edupaie.services.rapprochement_service import ETATS, RapprochementService
+from openpyxl import load_workbook
+
+from edupaie.services.caisse_service import CaisseService
+from edupaie.services.export_excel import exporter_cloture
 
 
 class TestReferences(unittest.TestCase):
@@ -61,6 +65,21 @@ class TestPaiementAvecReference(unittest.TestCase):
 
     def test_pas_de_numero_pour_les_especes(self):
         self.assertIsNone(self.payer(5000, "especes", "ABCD1234").reference)
+
+    def test_la_cloture_contient_le_numero(self):
+        self.payer(10000, reference="MP-2611-0001")
+        self.payer(5000, "especes")
+        self.auth.utilisateur = self.comptes["admin"]
+        cloture = CaisseService(PaiementRepository(self.conn), self.auth).cloture(
+            "2026-11-03", "2026-11-03")
+        refs = sorted((p["reference"] or "") for c in cloture["caissiers"]
+                      for p in c["paiements"])
+        self.assertEqual(refs, ["", "MP-2611-0001"])
+        with tempfile.TemporaryDirectory() as tmp:
+            classeur = load_workbook(exporter_cloture(cloture, tmp))
+            lignes = list(classeur["Détail"].iter_rows(min_row=2, values_only=True))
+            self.assertEqual(sorted(l[9] or "" for l in lignes), ["", "MP-2611-0001"])
+            classeur.close()
 
     def test_numero_invalide(self):
         for faux in ("abc", "x" * 41, "AB#12345"):

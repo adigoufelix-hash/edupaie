@@ -97,7 +97,7 @@ class PaiementRepository:
 
     def lister_periode(self, debut: str, fin: str, utilisateur_id: int | None = None):
         """Paiements d'une période (annulés compris), avec le nom de l'élève."""
-        sql = """SELECT p.id, p.numero_recu, p.date_paiement, p.mode, p.montant,
+        sql = """SELECT p.id, p.numero_recu, p.date_paiement, p.mode, p.montant, p.reference,
                         p.encaisse_par, p.utilisateur_id, p.annule,
                         p.motif_annulation, p.annule_par, p.annule_le,
                         e.nom, e.prenom, e.classe
