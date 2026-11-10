@@ -5,12 +5,12 @@ from PySide6.QtWidgets import (QAbstractItemView, QDialog, QHBoxLayout, QInputDi
                                QTableWidgetItem, QVBoxLayout)
 
 from edupaie.services.paiement_service import ErreurMetier
+from edupaie.ui.contact_dialog import ContactDialog
 from edupaie.ui.paiement_dialog import MODES, PaiementDialog, fcfa
 from edupaie.ui.recu_action import ouvrir_recu
 from edupaie.ui.remise_dialog import RemiseDialog
 from edupaie.ui.style import preparer_table
 from edupaie.ui.widgets import CarteKpi
-from edupaie.ui.contact_dialog import ContactDialog
 
 LIBELLES_MODES = {valeur: libelle for libelle, valeur in MODES}
 COULEURS = {"Soldé": "#166534", "Partiellement payé": "#9a3412",
@@ -34,7 +34,8 @@ def _table(colonnes):
 
 
 class FicheEleveDialog(QDialog):
-    def __init__(self, paiement_service, eleve, parent=None, remise_service=None, echeancier_service=None):
+    def __init__(self, paiement_service, eleve, parent=None, remise_service=None,
+                 echeancier_service=None):
         super().__init__(parent)
         self.service, self.eleve = paiement_service, eleve
         self.remises = remise_service
@@ -119,6 +120,7 @@ class FicheEleveDialog(QDialog):
         fermer.clicked.connect(self.accept)
         self.table.cellDoubleClicked.connect(lambda *_: self._recu())
         self.recharger()
+
     def _contact(self):
         ContactDialog(self.echeancier, self.eleve.id,
                       f"{self.eleve.nom} {self.eleve.prenom}", self).exec()
@@ -146,7 +148,7 @@ class FicheEleveDialog(QDialog):
                        fcfa(p.montant), fcfa(p.solde_apres),
                        p.encaisse_par or "-",
                        "ANNULÉ" if p.annule else "Valide",
-                       p.reference or "-"]
+                       getattr(p, "reference", None) or "-"]
             for col, texte_cellule in enumerate(valeurs):
                 item = QTableWidgetItem(texte_cellule)
                 if p.annule:
@@ -199,23 +201,46 @@ class FicheEleveDialog(QDialog):
             return None
         return ligne
 
+    def _texte(self, ligne, colonne) -> str:
+        """Texte d'une case de l'historique (vide si la case n'existe pas)."""
+        item = self.table.item(ligne, colonne)
+        return item.text() if item is not None else ""
+
+    def _id_paiement(self, ligne):
+        """Identifiant du paiement affiché sur cette ligne (None si la ligne est illisible)."""
+        item = self.table.item(ligne, 0)
+        return item.data(Qt.UserRole) if item is not None else None
+
+    def _ligne_illisible(self):
+        QMessageBox.information(
+            self, "Ligne illisible",
+            "Cette ligne n'a pas pu être lue. Ferme la fiche puis rouvre-la.")
+
     def _recu(self):
         ligne = self._ligne_selectionnee(
             self.table, "Sélectionne d'abord un paiement dans la liste.")
         if ligne is None:
             return
-        ouvrir_recu(self, self.service, self.table.item(ligne, 0).data(Qt.UserRole))
+        paiement_id = self._id_paiement(ligne)
+        if paiement_id is None:
+            self._ligne_illisible()
+            return
+        ouvrir_recu(self, self.service, paiement_id)
 
     def _annuler(self):
         ligne = self._ligne_selectionnee(
             self.table, "Sélectionne d'abord un paiement dans la liste.")
         if ligne is None:
             return
-        if self.table.item(ligne, 6).text() == "ANNULÉ":
+        paiement_id = self._id_paiement(ligne)
+        if paiement_id is None:
+            self._ligne_illisible()
+            return
+        if self._texte(ligne, 6) == "ANNULÉ":
             QMessageBox.information(self, "Déjà annulé", "Ce paiement est déjà annulé.")
             return
-        numero = self.table.item(ligne, 0).text()
-        montant = self.table.item(ligne, 3).text()
+        numero = self._texte(ligne, 0)
+        montant = self._texte(ligne, 3)
         motif, ok = QInputDialog.getText(
             self, "Annuler le paiement",
             f"Reçu {numero} ({montant}).\n"
@@ -224,8 +249,7 @@ class FicheEleveDialog(QDialog):
         if not ok:
             return
         try:
-            self.service.annuler_paiement(
-                self.table.item(ligne, 0).data(Qt.UserRole), motif)
+            self.service.annuler_paiement(paiement_id, motif)
         except ErreurMetier as e:
             QMessageBox.warning(self, "Annulation impossible", str(e))
             return
