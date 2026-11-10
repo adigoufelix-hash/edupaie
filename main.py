@@ -8,6 +8,8 @@ import traceback
 from datetime import datetime
 from pathlib import Path
 
+from edupaie.repositories.relance_repository import RelanceRepository
+from edupaie.services.relance_service import RelanceService
 from edupaie.repositories.resume_repository import ResumeRepository
 from edupaie.services.resume_service import ResumeJourService
 from PySide6.QtGui import QIcon
@@ -124,9 +126,11 @@ def main():
     resume = ResumeJourService(caisse, ResumeRepository(conn), auth)
     recouvrement = RecouvrementService(RecouvrementRepository(conn), auth)
     rapprochement = RapprochementService(RapprochementRepository(conn), auth)
+   
     remises = RemiseService(RemiseRepository(conn), eleves, paiements, auth)
     echeancier = EcheancierService(
         EcheanceRepository(conn), eleves, paiements, ContactRepository(conn), auth)
+    relance = RelanceService(echeancier, RelanceRepository(conn), auth)
     sauvegarder_sans_bloquer(sauvegarde)  # au lancement
     ecole = EcoleService(EcoleRepository(conn), auth)
     definir(ecole.lire())
@@ -160,6 +164,7 @@ def main():
     verif_ui = audite(verif, audit_regles.regles_verification())
     resume_ui = audite(resume, audit_regles.regles_resume())
     rapprochement_ui = audite(rapprochement, audit_regles.regles_rapprochement())
+    relance_ui = audite(relance, audit_regles.regles_relance())
     annees_ui = audite(annees, audit_regles.regles_annee())
     licence_ui = audite(licence, audit_regles.regles_licence())
 
@@ -179,6 +184,7 @@ def main():
             verification_service=verif_ui, annee_service=annees_ui, licence_service=licence_ui,
             guide_service=guide, demarrage_service=demarrage, resume_service=resume_ui,
             recouvrement_service=recouvrement, rapprochement_service=rapprochement_ui,
+            relance_service=relance_ui,
         )
         fenetre.resize(1180, 720)
         fenetre.showMaximized()
