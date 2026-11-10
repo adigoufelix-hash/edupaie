@@ -399,3 +399,15 @@ def regles_rapprochement():
     return {"importer": Regle(importation), "rapprocher": Regle(lien),
             "rapprocher_automatiquement": Regle(auto), "ignorer": Regle(ignore),
             "defaire": Regle(defaire)}
+
+def regles_relance():
+    """Le journal ne garde que des totaux : ni nom d'élève ni numéro de téléphone."""
+    def _fcfa(valeur):
+        return f"{int(valeur):,}".replace(",", " ") + " FCFA"
+
+    def relance(service, a, r, avant):
+        return {"action": "impayes.relance",
+                "detail": f"Relance WhatsApp ouverte : {r['nb_eleves']} élève(s), "
+                          f"{_fcfa(r['retard'])} en retard"}
+
+    return {"lien_et_noter": Regle(relance)}

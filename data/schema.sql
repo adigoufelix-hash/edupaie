@@ -173,3 +173,15 @@ CREATE TABLE IF NOT EXISTS releve_mm (
 CREATE UNIQUE INDEX IF NOT EXISTS ux_releve_paiement
     ON releve_mm(paiement_id) WHERE paiement_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_releve_date ON releve_mm(date_operation);
+
+-- Historique des relances envoyées aux parents (une ligne par élève relancé)
+CREATE TABLE IF NOT EXISTS relance (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    eleve_id       INTEGER NOT NULL REFERENCES eleve(id) ON DELETE CASCADE,
+    date_relance   TEXT    NOT NULL,          -- AAAA-MM-JJTHH:MM:SS
+    canal          TEXT    NOT NULL DEFAULT 'whatsapp',
+    montant_retard INTEGER NOT NULL,
+    tranche        TEXT,
+    envoye_par     TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_relance_eleve ON relance(eleve_id, date_relance);

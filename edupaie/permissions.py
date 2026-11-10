@@ -12,13 +12,13 @@ PERMISSIONS = {
         "utilisateur.gerer", "frais.gerer", "sauvegarde.gerer",
         "caisse.voir", "caisse.toutes", "remise.gerer", "impayes.voir",
         "ecole.gerer", "classe.gerer", "audit.voir", "annee.gerer", "licence.gerer",
-        "recouvrement.voir",  "rapprochement.gerer",
+        "recouvrement.voir",  "rapprochement.gerer",  "impayes.relancer",
     },
     COMPTABLE: {
         "eleve.lire", "eleve.ecrire",
         "paiement.lire", "paiement.encaisser",
         "recu.imprimer", "dashboard.voir",
-        "caisse.voir", "impayes.voir",
+        "caisse.voir", "impayes.voir", "impayes.relancer",
     },
     LECTURE: {
         "eleve.lire", "paiement.lire", "dashboard.voir",

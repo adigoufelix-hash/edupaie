@@ -54,13 +54,13 @@ LIBELLES = {
     "rapprochement.lien": "Opération du relevé rapprochée d'un paiement",
     "rapprochement.auto": "Rapprochement automatique",
     "rapprochement.ignore": "Opération du relevé ignorée",
-    "rapprochement.defaire": "Rapprochement annulé",
+    "rapprochement.defaire": "Rapprochement annulé",  "impayes.relance": "Relance WhatsApp ouverte",
 }
 
 CATEGORIES = {
     "Connexions": ("connexion", "echec_connexion", "blocage_connexion"),
     "Élèves": ("eleve.%", "contact.%", "classe.%"),
-    "Paiements": ("paiement.%", "caisse.%", "rapprochement.%"),
+    "Paiements": ("paiement.%", "caisse.%", "rapprochement.%", "impayes.%"),
     "Remises": ("remise.%",),
     "Frais et échéancier": ("frais.%", "echeancier.%"),
     "Utilisateurs": ("utilisateur.%",),

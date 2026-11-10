@@ -12,7 +12,7 @@ ECRANS = {
     "classes": "Classes", "frais": "Classes et frais", "utilisateurs": "Utilisateurs",
     "journal": "Journal d'audit", "sauvegardes": "Sauvegardes", "licence": "Licence",
     "parametres": "Paramètres", "guide": "Guide d'utilisation",  "recouvrement": "Recouvrement",
-    "rapprochement": "Rapprochement",
+    "rapprochement": "Rapprochement",  "relances": "Relances",
 }
 
 ORDRE_CATEGORIES = ["Pour commencer", "Au quotidien", "Élèves",
@@ -693,6 +693,35 @@ ARTICLES = [
         permission="rapprochement.gerer", ecran="rapprochement",
         mots_cles="rapprochement mobile money flooz tmoney relevé compte opérateur écart "
                   "contrôle fraude paiement sans trace"),
+
+    
+    Article(
+        "relances", "Au quotidien", "Relancer les parents en retard par WhatsApp",
+        "<p>L'écran Relances prépare la relance de tous les parents d'une classe (ou de "
+        "toute l'école) dont l'enfant est en retard d'après l'échéancier.</p>"
+        "<ol>"
+        "<li>Choisis la <b>date</b> et la <b>classe</b>. La liste montre les parents à "
+        "relancer, avec le montant en retard et la date de leur dernière relance.</li>"
+        "<li>Un parent qui a plusieurs enfants en retard reçoit <b>un seul message</b> qui "
+        "les liste, avec le total.</li>"
+        "<li>Un parent <b>relancé depuis moins de 7 jours</b> arrive décoché, pour ne pas "
+        "l'embêter deux fois de suite. Coche-le si tu veux vraiment le relancer.</li>"
+        "<li>Clique sur « Relancer le suivant » : WhatsApp s'ouvre sur la conversation du "
+        "parent, message prêt. Appuie sur <b>Envoyer</b> dans WhatsApp, reviens ici, et "
+        "clique de nouveau pour le parent suivant.</li>"
+        "</ol>"
+        "<p>« Relancer la ligne sélectionnée » ouvre la conversation d'un seul parent. « "
+        "Élèves sans numéro... » liste ceux dont le numéro manque : renseigne-le dans la "
+        "fiche de l'élève, bouton « Contact du parent ».</p>"
+        + _attention("EduPaie n'envoie rien tout seul : il ouvre WhatsApp et note que la "
+                     "conversation a été ouverte, pas que le message est parti. Relance par "
+                     "séries d'une vingtaine de parents, avec le numéro de l'école, et pas la "
+                     "nuit : WhatsApp peut bloquer un numéro qui envoie trop de messages "
+                     "d'un coup.")
+        + "<p>Voir aussi " + _g("impayes", "Suivre les impayés") + ".</p>",
+        permission="impayes.relancer", ecran="relances",
+        mots_cles="relance relancer parents whatsapp retard impayés groupée message "
+                  "classe"),
 ]
 
 
