@@ -23,3 +23,5 @@ outils/licences_emises/
 build/
 dist/
 installateur/
+erreurs.log
+*.log
