@@ -126,4 +126,4 @@ EduPaie s'utilise 30 jours à l'essai, puis avec une clé de licence signée (Ed
 
 ## Auteur
 
-Félix, étudiant en développement web à ADN Golfe 1 (Lomé). Logiciel propriétaire : tous droits réservés.
+ADIGOU Adélodjou Félix, étudiant en développement web à ADN Golfe 1 (Lomé). Logiciel propriétaire : tous droits réservés.
