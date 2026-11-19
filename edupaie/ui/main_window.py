@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QLabel, QListW
 
 from edupaie.services.ecole import courant
 from edupaie.ui.animations import fondu_page
-from edupaie.ui.annee_page import AnneePage
+
 from edupaie.ui.caisse_page import CaissePage
 from edupaie.ui.classes_page import ClassesPage
 from edupaie.ui.dashboard_page import DashboardPage

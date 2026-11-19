@@ -13,6 +13,7 @@ from edupaie.services.relance_service import RelanceService
 from edupaie.repositories.resume_repository import ResumeRepository
 from edupaie.services.resume_service import ResumeJourService
 from PySide6.QtGui import QIcon
+from edupaie.ui.oeil import installer_oeil
 from edupaie.repositories.demarrage_repository import DemarrageRepository
 from edupaie.services.demarrage_service import DemarrageService
 from edupaie.services.guide import GuideService
@@ -105,6 +106,7 @@ def main():
     app = QApplication(sys.argv)
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     app.setStyle("Fusion")
+    installer_oeil()
     icone = chemin_ressource("assets/EduPaie.ico")
     if icone.exists():
         app.setWindowIcon(QIcon(str(icone)))
